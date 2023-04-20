@@ -1,0 +1,331 @@
+<script type="text/html" data-help-name="smalltimer">
+    <p>Timing node with sunset, sunrise, dusk, dawn etc possibilities</p>
+    <h3>Details</h3>
+    <p><b>Smalltimer</b> is probably not the ultimate Node-Red timing node, sending messages for start and end conditions at any time, day, month or special day.</p>
+	<p>In the simplest case, Smalltimer requires no input and you need only to consider the first output. But Smalltimer can be much more.</p>
+
+    <h3>Outputs</h3>
+        <dl class="message-properties">
+            <dt>payload <span class="property-type">string</span></dt>
+            <dd>This is set to the value of the onMsg or offMsg properties in the configuration (depending on state)</dd>
+            <dt>topic</dt>
+            <dd>Topic set in the configuration properties</dd>
+            <dt>state</dt>
+            <dd>Will be one of : `on`, `off`, or `auto`</dd>
+        </dl>
+	<h3>Inputs</h3>
+    <p>
+        The input can be used as an override by simply sending a text or numeric message as payload. Valid (case-insensitive) messages passed in via msg.payload include:
+    </p>
+        <dl class="message-properties">
+            <dt class="optional">payload <span class="property-type">string as specified</span></dt>
+            <dd>payload can contain one of the following values
+                <ul>
+                    <li>1 (or on)</li>
+                    <li>0 (or off)</li>
+                    <li>toggle</li>
+                    <li>auto (or default)</li>
+                    <li>manual</li>
+                    <li>sync</li>
+                    <li>stop</li>
+                </ul>
+            </dd>
+            <dt class="optional">away <span class="property-type">string</span></dt>
+            <dd>
+                the string on this property specifies how many minutes / hours / days you are away, which disables the node for the amount<br/>
+                for example if you want to momentarily disable the automation for 10 hours, you specify a value of 10h, likewise if you want 10 days, you specify 10d
+            </dd>
+        </dl>
+    <p>
+        NOTE! if input contains non decodable properties / strings, the input will be ignored, and an error will be emitted to Node-Red
+    </p>
+    <p>For more advanced uses a set of special message properties can be used to send additional data</p>
+
+    <h3>Manual Overrides</h3>
+    <p>
+        If the payload property in a message is set to either 0 (or off) or 1 (or on), the state is turned either off or on. The state will be kept until either of the following conditions is met<br/>
+        <ul>
+            <li>24 hours has elapsed</li>
+            <li>a new output state is set as a result of the on/off times configured in the node</li>
+        </ul>
+    </p>
+    <p>if the message payload is set to the string "auto" or "default" then the node will switch back to the configured state, if it was forced to be on/off</p>
+	<p>The first two override messages (1/0) time-out after 24 hours (1440 minutes, user-settable) OR at the next change of schedule. If you have also selected "manual" - the outputs will NOT revert back at change of schedule (auto to reset).</p>
+    <p>The schedule can be paused by the interface tick box or by the "manual" command (use the "auto" command to return to normal)</p>
+    <p>The on_override and off_override fields can be used to supercede the set inputs for on and off times (in minutes) - "on_override 20:15" for example (without the quotes) for 8:15pm. These settings are volatile, i.e. not restored when Node-Red is restarted. It may take up to a minute for these controls to take effect. Use for example "on_override" with no arguments to set the auto-on time back to normal.</p>
+	<p>Manual UTC is optional offset (hrs) in case you have a special reason not to have the right time on your computer! Normally 0.</p>
+    <h3>Status Display</h3>
+   <p>Remember, the status display only updates once per minute unless in timer mode (seconds). If you have Smalltimer set to OFF you should see a black "No action today" message - if you use manual inject to override - it may take up to a minute for this message to re-appear.</p>
+   <h3>Dusk, Dawn and More</h3>
+	<p>The Dawn and Dusk offsets can be both positive (+ve) for minutes later or negative (-ve) for minutes earlier.</p>
+
+  <h3>Special Days</h3>
+   These include special days (i.e. 25/12) and special weekdays (i.e. first Tuesday of the month) and as of v2.0.0 these can be included or excluded.
+   You can if you wish (from v2.3.0 onwards) for example merely turn on Smalltimer one day every month of the year by turning off ALL months and using the 12 special days.
+   For those occasions where "alternative days" are required there are checkbox options to BAN output on even and/or odd days of the month.
+</script>
+
+<script type="text/html" data-template-name="smalltimer">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-input-position"><i class="fa fa-tag"></i> Position</label>
+        <input type="text" id="node-input-position" placeholder="Position">
+    </div>
+    <div class="form-row">
+        <label><i class="fa fa-tag"></i> Output 1</label>
+        <input type="checkbox" style="width: auto !important" id="node-input-repeat">
+        <label for="node-input-repeat"> Repeat</label>
+        <input type="checkbox" style="width: auto !important" id="node-input-injectOnStartup">
+        <label for="node-input-injectOnStartup"> Inject on startup</label>
+    </div>
+    <div class="form-tips">
+        <b>Tip</b> Specify offset as a positive or negative number of minutes (120 for 2 hours)
+    </div>
+    <div class="form-row">
+        <label for="node-input-startTime"><i class="fa fa-clock-o"></i> On time</label>
+        <input type="text" id="node-input-startTime" class="hidden">
+        <select style="width:100px" id="node-input-startTime-select">
+        </select>
+        <span for="node-input-startOffset" style="margin-left:20px">Offset</span>
+        <input  style="width:80px" type="text" id="node-input-startOffset" placeholder="0">
+    </div>
+    <div class="form-row">
+        <label  for="node-input-endTime"><i class="fa fa-clock-o"></i> Off time</label>
+        <input type="text" id="node-input-endTime">
+        <select style="width:100px" id="node-input-endTime-select">
+        </select>
+        <span for="node-input-end Offset" style="margin-left:20px">Offset</span>
+        <input  style="width:80px" type="text" id="node-input-endOffset" placeholder="0">
+    </div>
+    <div class="form-row">
+        <label for="node-input-timeout"><i class="fa fa-tag"></i> Timeout for temp override</label>
+        <input type="text" id="node-input-timeout" placeholder="1440">
+    </div>
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Topic</label>
+        <input type="text" id="node-input-topic" placeholder="Topic">
+    </div>
+    <div class="form-row">
+        <label for="node-input-onMsg"><i class="fa fa-tag"></i> On message</label>
+        <input type="text" id="node-input-onMsg" placeholder="1">
+    </div>
+    <div class="form-row">
+        <label for="node-input-offMsg"><i class="fa fa-tag"></i> Off message</label>
+        <input  type="text" id="node-input-offMsg" placeholder="0">
+    </div>
+    <div class="form-row node-input-rules-container-row">
+        <label style="width: 400px;">When to run rules</label>
+        <ol id="node-input-rules-container"></ol>
+    </div>
+    <div class="form-tips">
+        If day exceeds the number of days available in the specified month, it is considered to be the last day of the month.<br/>
+    </div>
+</script>
+
+<script type="text/javascript">
+(function() {
+    const monthNames = [
+        {value: 0, label: 'All'},
+        {value: 1, label: "January"},
+        {value: 2, label: "February"},
+        {value: 3, label: "March"},
+        {value: 4, label: "April"},
+        {value: 5, label: "May"},
+        {value: 6, label: "June"},
+        {value: 7, label: "July"},
+        {value: 8, label: "August"},
+        {value: 9, label: "September"},
+        {value: 10, label: "October"},
+        {value: 11, label: "November"},
+        {value: 12, label: "December"}
+    ];
+
+    const dayNumbers = Array.apply(null, {length: 31}).map(Number.call, Number).map((item) => ({label: item + 1, value: item + 1}));
+    dayNumbers.unshift({label: 'All', value: 0});
+
+    const ruleType = [
+         {value: 'include', label: '=='},
+         {value: 'exclude', label: '<>'}
+    ]
+
+    function exportRule(monthDay) {
+        var type = monthDay?.find(".typeSelect").val();
+        var month = monthDay?.find(".monthSelect").val();
+        var day = monthDay?.find(".daySelect").val();
+        return {type, month, day};
+    }
+
+    RED.nodes.registerType('smalltimer', {
+        category: 'advanced-input',
+        color:"#88dd22",
+        inputLabels: "Optional overrides",
+        outputLabels: ["one-off message","outputs every minute","speech/log output"],
+        defaults: {
+            name: {value: 'Small timer', required: true},
+            position: {value:"", type: "position"},
+            startTime: {value: 5001, required: true},
+            endTime: {value: 1425, required: true},
+            startOffset: {value: 0, required: true},
+            endOffset: {value: 0, required: true},
+            onMsg: {value: '1', required: false},
+            offMsg: {value: '0', required: false},
+            topic: {value: '', required: false},
+            injectOnStartup: {value: false, required: true},
+            repeat: {value: false, required: true},
+            rules: {value: [{type: 'include', month: 0, day: 0}]},
+            timeout: {value: 1440, required: true},
+            wrapMidnight: {value: false, required: false},
+        },
+        icon: "timer.png",
+        inputs: 1,
+        outputs: 1,
+        label: function() {
+            return this.name||this.prefix;
+        },
+        labelStyle: function() {
+            return this.name?"node_label_italic":"";
+        },
+        oneditprepare: function() {
+            var node = this
+            generateTimes('#node-input-startTime', false)
+            generateTimes('#node-input-endTime', true)
+
+            $("#node-input-rules-container").css('min-height','150px').css('min-width','450px').editableList({
+                header: $("<div>").append($.parseHTML(`
+                    <div style='width:20%; display: inline-grid'>Type</div>
+                    <div style='width:30%; display: inline-grid'>Month</div>
+                    <div style='display: inline-grid'>Day of month</div>
+                `)),
+                scrollOnAdd: true,
+                sortable: true,
+                removable: true,
+                addButton: 'Add rule',
+                addItem: function(container,i,opt) {
+                    var focusValueField = false;
+                    if (!opt.hasOwnProperty('r')) {
+                        opt.r = {};
+                        if (i > 0) {
+                            var lastRule = $("#node-input-rules-container").editableList('getItemAt',i-1);
+                            var exported = exportRule(lastRule.element);
+                            opt.r.month = exported.month;
+                            opt.r.day = exported.day;
+                            opt.r.type = exported.type;
+                            // We could copy the value over as well and preselect it (see the 'activeElement' code below)
+                            // But not sure that feels right. Is copying over the last value 'expected' behaviour?
+                            // It would make sense for an explicit 'copy' action, but not sure where the copy button would
+                            // go for each rule without being wasted space for most users.
+                            // opt.r.v = exportedRule.v;
+                            focusValueField = true;
+                        }
+                    }
+
+                    opt.element = container;
+                    var rule = opt.r;
+                    if (!rule.hasOwnProperty('month')) {
+                        rule.month = 0;
+                    }
+                    if (!rule.hasOwnProperty('type')) {
+                        rule.type = 'include';
+                    }
+                    if (!rule.hasOwnProperty('day')) {
+                        rule.day = 0;
+                    }
+                    if (!opt.hasOwnProperty('i')) {
+                        opt._i = Math.floor((0x99999-0x10000)*Math.random()).toString();
+                    }
+
+                    container.css({
+                        overflow: 'hidden',
+                        whiteSpace: 'nowrap',
+                        display: "flex",
+                        "align-items":"center"
+                    });
+
+                    const row = $('<div></div>',{style:"flex-grow:1"}).appendTo(container);
+                    const typeSelect = $('<select/>',{style:"width:20%; margin-left:5px"}).addClass('typeSelect').appendTo(row);
+                    const monthSelect = $('<select/>',{style:"width:30%; margin-left:5px"}).addClass('monthSelect').appendTo(row);
+                    const daySelect = $('<select/>', {style: "width:40%; margin-left:5px"}).addClass('daySelect').appendTo(row);
+
+                    ruleType.forEach((r) => {
+                        typeSelect.append($("<option></option>").val(r.value).text(r.label));
+                    })
+                    monthNames.forEach((r) => {
+                        monthSelect.append($("<option></option>").val(r.value).text(r.label));
+                    })
+                    dayNumbers.forEach((r) => {
+                        daySelect.append($("<option></option>").val(r.value).text(r.label));
+                    })
+
+                    monthSelect.val(rule.month);
+                    typeSelect.val(rule.type);
+                    daySelect.val(rule.day);
+
+                },
+                removeItem: function(opt) {
+                    var rules = $("#node-input-rule-container").editableList('items');
+                    rules.each(function(i) {
+                        $(this).find(".node-input-rule-index").html(i+1);
+                        var data = $(this).data('data');
+                    });
+                },
+            });
+
+            this.rules.forEach((rule, i) => {
+                $("#node-input-rules-container").editableList('addItem',{r:rule,i:i});
+            })
+        },
+        oneditsave : function() {
+            var rules = $("#node-input-rules-container").editableList('sort').editableList('items');
+            var node = this;
+            node.rules = [];
+            rules.each(function(i) {
+                node.rules.push(exportRule($(this)));
+            });
+            $('#node-input-startTime').val($('#node-input-startTime-select').val());
+            $('#node-input-endTime').val($('#node-input-endTime-select').val());
+        }
+    })
+
+    function generateTimes(selectId, endTime = false) {
+        $(selectId).hide()
+        let html = ''
+        const pad = (n) => `00${n.toFixed(0)}`.substr(-2)
+        for (let time = 0; time < 1439; time +=15) {
+            const minutes = time % 60
+            const hour = Math.floor(time / 60)
+            html = html + `<option value=${time}>${pad(hour)}:${pad(minutes)}</option>`
+        }
+
+        html = html + `
+        <option value="1439">Day End</option>
+        <option value="5000">Dawn</option>
+        <option value="5001">Dusk</option>
+        <option value="5002">Solarnoon</option>
+        <option value="5003">Sunrise</option>
+        <option value="5004">Sunset</option>
+        <option value="5005">Night</option>
+        <option value="5006">Night end</option>
+        <option value="5007">Moonrise</option>
+        <option value="5008">Moonset</option>
+        `
+        if (endTime) {
+            html = html + `
+            <option value="10001">1 minute</option>
+            <option value="10002">2 minutes</option>
+            <option value="10005">5 minutes</option>
+            <option value="10010">10 minutes</option>
+            <option value="10015">15 minutes</option>
+            <option value="10030">30 minutes</option>
+            <option value="10060">60 minutes</option>
+            <option value="10090">90 minutes</option>
+            <option value="10120">120 minutes</option>
+            `
+        }
+        $(`${selectId}-select`).html(html);
+        $(`${selectId}-select`).val($(selectId).val());
+    }
+})()
+</script>

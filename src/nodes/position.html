@@ -1,0 +1,41 @@
+<script type="text/x-red" data-template-name="position">
+    <div class="form-row">
+        <label for="node-config-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-config-input-name" placeholder="Name" />
+    </div>
+    <div class="form-row" id="node-config-input-latitude-row">
+        <label for="node-config-input-latitude"><i class="fa fa-file"></i> latitude</label>
+        <input type="text" id="node-config-input-latitude" />
+    </div>
+    <div class="form-row" id="node-config-input-longitude-row">
+        <label for="node-config-input-longitude"><i class="fa fa-file"></i> longitude</label>
+        <input type="text" id="node-config-input-longitude" />
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="position">
+    <p>
+        Store a latitude / longitude pair to be used in all your small timer nodes across node-red
+    </p>
+</script>
+
+<script type="text/javascript">
+    RED.nodes.registerType('position',{
+        category: 'config',
+        defaults: {
+            name: {value: ""},
+            latitude: {value: "latitude", required: true},
+            longitude: {value: "longitude", require: true},
+        },
+        label: function() {
+            return `${this.name || this.prefix} (${this.latitude}, ${this.longitude})`
+        },
+        oneditprepare: function() {
+        },
+        oneditsave: function() {
+            var node = this
+            node.latitude = $('#node-config-input-latitude')
+            node.longitude = $('#node-config-input-longitude')
+        }
+    })
+</script>
