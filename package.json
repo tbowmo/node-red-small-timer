@@ -3,7 +3,7 @@
     "author": {
         "name": "Thomas Bowman Mørch"
     },
-    "version": "0.0.1",
+    "version": "0.0.2",
     "engines": {
         "node": ">=16.0.0"
     },
@@ -28,11 +28,11 @@
         ]
     },
     "bugs": {
-        "url": "https://github.com/tbowmo/node-red-contrib-mysensors/issues"
+        "url": "https://github.com/tbowmo/node-red-small-timer/issues"
     },
     "deprecated": false,
-    "description": "Mysensors related nodes, for decoding / encoding mysensors serial protocol and MQTT topic, and wrapping arbitrary messages into mysensors compatible messages",
-    "homepage": "https://github.com/tbowmo/node-red-contrib-mysensors",
+    "description": "Small timer node for node red with support for sunrise, sunset etc. timers",
+    "homepage": "https://github.com/tbowmo/node-red-small-timer",
     "keywords": [
         "node-red",
         "timer",
@@ -52,7 +52,7 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/tbowmo/node-red-contrib-mysensors.git"
+        "url": "git+https://github.com/tbowmo/node-red-small-timer.git"
     },
     "dependencies": {
         "date-fns": "^2.29.3",
