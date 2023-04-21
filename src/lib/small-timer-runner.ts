@@ -237,13 +237,11 @@ export class SmallTimerRunner {
             case 'auto':
             case 'default':
                 this.doOverride('auto')
-                this.publishState()
                 break
             case 'sync':
-                this.publishState()
                 break
-            case 'stop':
-                break
+            default:
+                return
         }
         this.forceSend()
     }

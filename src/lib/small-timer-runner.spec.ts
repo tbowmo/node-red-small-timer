@@ -1,3 +1,4 @@
+import { expect } from 'chai'
 import { useSinonSandbox } from '../../test'
 import { ISmallTimerProperties } from '../nodes/common'
 import {SmallTimerRunner} from './small-timer-runner'
@@ -191,4 +192,107 @@ describe('small-timer/time-runner', () => {
 
     })
 
+    it('should output node status when sync message is received, without changing properties', () => {
+        const stubs = setupTest({
+            topic: 'test-topic',
+            onMsg: 'on-msg',
+            offMsg: '0',
+            injectOnStartup: true
+        })
+
+        stubs.timeCalc.getMinutesToNextStartEvent.returns(0)
+        stubs.timeCalc.getMinutesToNextEndEvent.returns(20)
+        stubs.timeCalc.getOnState.returns(false)
+
+        const runner = new SmallTimerRunner(stubs.position, stubs.configuration, stubs.node)
+        sinon.clock.tick(80000)
+
+        sinon.assert.calledWithExactly(stubs.status, {fill: 'blue', shape: 'dot', text: 'OFF for 00mins'})
+        sinon.assert.calledWithExactly(stubs.send, {
+            state: 'auto',
+            stamp: 2000,
+            autoState: true,
+            duration: 0,
+            temporaryManual: false,
+            timeout: 0,
+            payload: '0',
+            topic: 'test-topic'
+        })
+
+        runner.onMessage({payload: 'sync', _msgid: 'some-id'})
+        runner.onMessage({payload: 'sync', _msgid: 'some-id'})
+        runner.onMessage({payload: 'sync', _msgid: 'some-id'})
+        runner.onMessage({payload: 'sync', _msgid: 'some-id'})
+
+        expect(stubs.send.callCount).to.equal(5)
+        expect(stubs.send.lastCall.args).to.deep.equal([{
+            state: 'auto',
+            stamp: 80000,
+            autoState: true,
+            duration: 0,
+            temporaryManual: false,
+            timeout: 0,
+            payload: '0',
+            topic: 'test-topic'
+        }])
+    })
+
+    it('should do nothing if invalid message is received', () => {
+        const stubs = setupTest({
+            topic: 'test-topic',
+            onMsg: 'on-msg',
+            offMsg: '0',
+            injectOnStartup: false
+        })
+
+        stubs.timeCalc.getMinutesToNextStartEvent.returns(0)
+        stubs.timeCalc.getMinutesToNextEndEvent.returns(20)
+        stubs.timeCalc.getOnState.returns(false)
+
+        const runner = new SmallTimerRunner(stubs.position, stubs.configuration, stubs.node)
+        sinon.clock.tick(80000)
+
+        sinon.assert.calledWithExactly(stubs.status, {fill: 'blue', shape: 'dot', text: 'OFF for 00mins'})
+
+        runner.onMessage({payload: 'invalid', _msgid: 'some-id'})
+        runner.onMessage({payload: 'invalid', _msgid: 'some-id'})
+        runner.onMessage({payload: 'invalid', _msgid: 'some-id'})
+        runner.onMessage({payload: 'invalid', _msgid: 'some-id'})
+
+        expect(stubs.send.callCount).to.equal(0)
+    })
+
+    it('should stop timer, and not advance anything after cleanup has been called', async() => {
+        const stubs = setupTest({
+            topic: 'test-topic',
+            onMsg: 'on-msg',
+            offMsg: '0',
+            injectOnStartup: true
+        })
+
+        stubs.timeCalc.getMinutesToNextStartEvent.returns(0)
+        stubs.timeCalc.getMinutesToNextEndEvent.returns(20)
+        stubs.timeCalc.getOnState.returns(false)
+
+        const runner = new SmallTimerRunner(stubs.position, stubs.configuration, stubs.node)
+        sinon.clock.tick(5000)
+        runner.cleanup()
+
+        sinon.assert.calledWithExactly(stubs.status, {fill: 'blue', shape: 'dot', text: 'OFF for 00mins'})
+        sinon.assert.calledWithExactly(stubs.send, {
+            state: 'auto',
+            stamp: 2000,
+            autoState: true,
+            duration: 0,
+            temporaryManual: false,
+            timeout: 0,
+            payload: '0',
+            topic: 'test-topic'
+        })
+        stubs.timeCalc.getOnState.returns(true)
+        sinon.clock.tick(1200000)
+        await Promise.resolve()
+        expect(stubs.status.callCount).to.equal(1)
+        expect(stubs.send.callCount).to.equal(1)
+    })
 })
