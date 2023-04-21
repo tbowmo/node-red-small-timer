@@ -55,6 +55,8 @@ export class SmallTimerRunner {
         this.timeout = Number(configuration.timeout)
         if (configuration.injectOnStartup) {
             this.startupTock = setTimeout(this.forceSend.bind(this), 2000)
+        } else {
+            this.updateStatus()
         }
         this.startTickTimer()
     }
