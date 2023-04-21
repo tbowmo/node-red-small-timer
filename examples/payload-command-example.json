@@ -1,0 +1,192 @@
+[
+    {
+        "id": "7eed48faf9d46b73",
+        "type": "smalltimer",
+        "z": "30521b7b48aa8655",
+        "name": "Small timer",
+        "position": "b690c674ab214375",
+        "startTime": "1050",
+        "endTime": "1065",
+        "startOffset": 0,
+        "endOffset": 0,
+        "onMsg": "1",
+        "offMsg": "0",
+        "topic": "test/topic",
+        "injectOnStartup": false,
+        "repeat": false,
+        "rules": [
+            {
+                "type": "include",
+                "month": "0",
+                "day": "0"
+            }
+        ],
+        "timeout": "2",
+        "x": 850,
+        "y": 260,
+        "wires": [
+            [
+                "5e04eee43016e668"
+            ]
+        ]
+    },
+    {
+        "id": "bfec0aeb1b001b08",
+        "type": "inject",
+        "z": "30521b7b48aa8655",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "on",
+        "payloadType": "str",
+        "x": 630,
+        "y": 180,
+        "wires": [
+            [
+                "7eed48faf9d46b73"
+            ]
+        ]
+    },
+    {
+        "id": "941f70af4a0824a6",
+        "type": "inject",
+        "z": "30521b7b48aa8655",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "off",
+        "payloadType": "str",
+        "x": 630,
+        "y": 220,
+        "wires": [
+            [
+                "7eed48faf9d46b73"
+            ]
+        ]
+    },
+    {
+        "id": "a8c337de7f3949ee",
+        "type": "inject",
+        "z": "30521b7b48aa8655",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "default",
+        "payloadType": "str",
+        "x": 630,
+        "y": 260,
+        "wires": [
+            [
+                "7eed48faf9d46b73"
+            ]
+        ]
+    },
+    {
+        "id": "5e04eee43016e668",
+        "type": "debug",
+        "z": "30521b7b48aa8655",
+        "name": "Output",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1070,
+        "y": 260,
+        "wires": []
+    },
+    {
+        "id": "f52dfb48de81a328",
+        "type": "inject",
+        "z": "30521b7b48aa8655",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "sync",
+        "payloadType": "str",
+        "x": 630,
+        "y": 300,
+        "wires": [
+            [
+                "7eed48faf9d46b73"
+            ]
+        ]
+    },
+    {
+        "id": "f27204de599cb56c",
+        "type": "inject",
+        "z": "30521b7b48aa8655",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "toggle",
+        "payloadType": "str",
+        "x": 630,
+        "y": 340,
+        "wires": [
+            [
+                "7eed48faf9d46b73"
+            ]
+        ]
+    },
+    {
+        "id": "7a45ea7227c68c7b",
+        "type": "comment",
+        "z": "30521b7b48aa8655",
+        "name": "Simple flow to demonstrate commands",
+        "info": "This simple flow will demonstrate how\none can send commands to small timer, \nwith message payloads.\n",
+        "x": 950,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "b690c674ab214375",
+        "type": "position",
+        "name": "Home",
+        "latitude": "56.775593291402735",
+        "longitude": "10.171011779931773"
+    }
+]
