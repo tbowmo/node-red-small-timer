@@ -37,7 +37,8 @@ describe('small-timer/time-runner', () => {
         const stubbedTimeCalc = {
             getMinutesToNextStartEvent: sinon.stub(),
             getMinutesToNextEndEvent: sinon.stub(),
-            getOnState: sinon.stub().returns(false)
+            getOnState: sinon.stub().returns(false),
+            noOnStateToday: sinon.stub().returns(false)
         }
         return {
             send,
@@ -50,7 +51,22 @@ describe('small-timer/time-runner', () => {
         }
     }
 
-    it('should handLE temporary on and use timeout to calculate next change', () => {
+    it('should handle no action today, due to negative on interval', () => {
+        const stubs = setupTest()
+        stubs.timeCalc.getMinutesToNextStartEvent.returns(10)
+        stubs.timeCalc.getMinutesToNextEndEvent.returns(20)
+        stubs.timeCalc.noOnStateToday.returns(true)
+
+        new SmallTimerRunner(stubs.position, stubs.configuration, stubs.node)
+
+        sinon.assert.calledWith(stubs.node.status, {
+            fill: 'yellow',
+            shape: 'dot',
+            text: 'No action today - off time is before on time'
+        })
+    })
+
+    it('should handle temporary on and use timeout to calculate next change', () => {
         const stubs = setupTest({
             timeout: 5
         })

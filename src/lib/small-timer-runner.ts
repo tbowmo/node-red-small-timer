@@ -1,3 +1,4 @@
+/*eslint complexity: ["error", 13]*/
 import { Node, NodeStatusFill } from 'node-red'
 import { ISmallTimerProperties, Rule } from '../nodes/common'
 import { SmallTimerChangeMessage, ISmallTimerMessage } from './interfaces'
@@ -156,11 +157,14 @@ export class SmallTimerRunner {
         let fill: NodeStatusFill = 'yellow'
         const text: string[] = []
 
-        const activeToday = this.isDayOk()  || this.currentState
+        const activeToday = !this.timeCalc.noOnStateToday() && (this.isDayOk() || this.currentState)
 
         if (!activeToday) {
+            text.push('No action today')
+        }
 
-            text.push('No action today ')
+        if (this.timeCalc.noOnStateToday()) {
+            text.push('off time is before on time')
         }
 
         if (activeToday || this.override !== 'auto') {

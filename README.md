@@ -22,19 +22,28 @@ This is the key idea about the small timer, you can get it to do exactly that, t
 
 Start by configuring a position for your node to do sunrise/sunset etc. calculation for. this doesn't need to be super exact, you can use google maps to figure out the latitude / longitude for your site.
 
-The **repeat** and **inject on startup** checkboxes configures the node to either repeat the output every minute (default is that it only emits a message on state change), and if you want to inject a message upon startup / redeploy of your node red flow.
+### Option checkboxes
+The **repeat** and **inject on startup** checkboxes configures the node to either repeat the output every minute (default is that it only emits a message on state change), and if you want to inject a message upon startup / redeploy of your node red flow. 
 
-**On time** and **Off time** is when the magic happens. Set it to the desired on time and off time using the dropdowns. You can also set an offset (positive or negative), which will add (or subtract) the specified number of minutes to the calculated time, so you can set the light to turn on 30 minutes _after_ sunset, as an example
+**Wrap midnight** will wrap on time around midnight, if on time is 23:00 and off time is 02:00, checking this will turn on before midnight, and off after. If unchecked, it will ignore this. Say, you have a fixed on time at 06:00 in the morning, and a dynamic off time tracking sunrise. When the sunrise is before 06:00 you do not want it to turn on the porch light, you might not want to have the light turned on.
 
-**Timeout** is used when triggering an override of the current state, after set time the node will switch back to whatever the output state should be at the given time
+### On / Off time
+This is when the magic happens. Set it to the desired on time and off time using the dropdowns. You can also set an offset (positive or negative), which will add (or subtract) the specified number of minutes to the calculated time, so you can set the light to turn on 30 minutes _after_ sunset, as an example
 
-**Topic** is the topic parameter of the msg that is sent out on events. This can be used to send on to mqtt for example.
+### Timeout 
+Used when triggering an override of the current state, after set time the node will switch back to whatever the output state should be at the given time
 
-**On message** the payload of the output message is set to this value during on
+### Topic
+Topic parameter of the msg that is sent out on events. This can be used to send on to mqtt for example.
 
-**Off message** the payload of the output message is set to this value during off
+### On message
+Payload of the output message is set to this value during on
 
-**When to run rules** This can be used to configure what days the rule should / should not run. 
+### Off message
+Payload of the output message is set to this value during off
+
+### When to run rules
+This can be used to configure what days the rule should / should not run. 
 
 **==** is include, this specifies days where the rule should run
 

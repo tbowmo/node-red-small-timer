@@ -84,6 +84,15 @@ export class TimeCalc {
         return (currentTime > this.actualStart) && (currentTime < this.actualEnd)
     }
 
+    /**
+     * Check if we will have an on event today,
+     * returns false if wrapMidnight is false, and actualEnd is before actualStart
+     * @returns
+     */
+    public noOnStateToday(): boolean {
+        return !this.wrapMidnight && (this.actualEnd < this.actualStart)
+    }
+
     public eventCalculation(now = new Date()) {
         this.updateSunCalc(now)
         this.actualStart = this.lookupEventTime(this.startTime) + this.startOffset

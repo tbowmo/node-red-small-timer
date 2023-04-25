@@ -72,6 +72,7 @@ describe('small-timer/time-calculation', () => {
         expect(timeCalc.getOnState()).to.equal(true)
         expect(timeCalc.getMinutesToNextEndEvent()).to.equal(180)
         expect(timeCalc.getMinutesToNextStartEvent()).to.equal(22*60)
+        expect(timeCalc.noOnStateToday()).to.equal(false)
     })
 
     it('should not signal on, if off time is before on time', () => {
@@ -91,6 +92,7 @@ describe('small-timer/time-calculation', () => {
         expect(timeCalc.getOnState()).to.equal(false)
         expect(timeCalc.getMinutesToNextEndEvent()).to.equal(180)
         expect(timeCalc.getMinutesToNextStartEvent()).to.equal(22*60)
+        expect(timeCalc.noOnStateToday()).to.equal(true)
     })
 
     const testData: {startTime:number, endTime: number, wrap:boolean, expectedStart: number, expectedEnd: number }[] = [

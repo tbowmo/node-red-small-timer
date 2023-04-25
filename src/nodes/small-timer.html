@@ -75,12 +75,18 @@
         <input type="text" id="node-input-position" placeholder="Position">
     </div>
     <div class="form-row">
-        <label><i class="fa fa-tag"></i> Output 1</label>
-        <input type="checkbox" style="width: auto !important" id="node-input-repeat">
-        <label for="node-input-repeat"> Repeat</label>
-        <input type="checkbox" style="width: auto !important" id="node-input-injectOnStartup">
-        <label for="node-input-injectOnStartup"> Inject on startup</label>
+        <label><i class="fa fa-tag"></i> Options</label>
+        <div style="display:inline-block;" class="small-timer-options">
+            <div>
+                <label><input type="checkbox" id="node-input-repeat"> Repeat</label>
+                <label><input type="checkbox" id="node-input-injectOnStartup"> Inject on startup</label>
+            </div>
+            <div>
+                <label><input type="checkbox" id="node-input-wrapMidnight" > Wrap midnight</label>
+            </div>
+        </div>
     </div>
+
     <div class="form-tips">
         <b>Tip</b> Specify offset as a positive or negative number of minutes (120 for 2 hours)
     </div>
@@ -124,6 +130,25 @@
         If day exceeds the number of days available in the specified month, it is considered to be the last day of the month.<br/>
     </div>
 </script>
+<style>
+    .small-timer-options label {
+        -webkit-user-select: none;
+        -khtml-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        vertical-align: baseline;
+        width: 120px !important;
+        white-space: nowrap;
+    }
+    .small-timer-options input {
+        width: auto !important;
+        vertical-align: baseline !important;
+    }
+    .form-tips {
+        margin-bottom: 8px;
+    }
+</style>
 
 <script type="text/javascript">
 (function() {
@@ -177,7 +202,7 @@
             repeat: {value: false, required: true},
             rules: {value: [{type: 'include', month: 0, day: 0}]},
             timeout: {value: 1440, required: true},
-            wrapMidnight: {value: false, required: false},
+            wrapMidnight: {value: true, required: false},
         },
         icon: "timer.png",
         inputs: 1,
