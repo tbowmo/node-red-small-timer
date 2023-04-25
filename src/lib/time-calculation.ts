@@ -27,7 +27,7 @@ export class TimeCalc {
      * @param longitude
      * @param wrapMidnight
      */
-    constructor (
+    constructor(
         private latitude: number,
         private longitude: number,
         private wrapMidnight: boolean,
@@ -41,7 +41,7 @@ export class TimeCalc {
 
 
     public setStartEndTime(startTime?: number, endTime?: number, startOffset?: number, endOffset?: number) {
-        this.startTime = startTime ?? this.startTime,
+        this.startTime = startTime ?? this.startTime
         this.endTime = endTime ?? this.endTime
         this.startOffset = startOffset ?? this.startOffset
         this.endOffset = endOffset ?? this.endOffset

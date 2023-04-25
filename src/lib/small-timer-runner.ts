@@ -81,12 +81,18 @@ export class SmallTimerRunner {
     private isDayOk(date = new Date()): boolean {
         const month = date.getMonth() + 1
         const day = date.getDate()
+        const weekDay = date.getDay()
+
+        const validMonths = [0, month]
+        const validDays = [0, day, weekDay + 100]
+
         let isOk = false
 
         this.rules.forEach((item: Rule) => {
-            if ((Number(item.month) === 0 || Number(item.month) === month)
-                && (Number(item.day) === 0 || Number(item.day) === day)
-            ) {
+            item.month = Number(item.month)
+            item.day = Number(item.day)
+            if (validMonths.includes(item.month)
+                && validDays.includes(item.day)) {
                 isOk = item.type === 'include'
             }
         })

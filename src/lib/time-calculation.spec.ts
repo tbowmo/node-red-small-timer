@@ -19,7 +19,7 @@ describe('small-timer/time-calculation', () => {
             sunset: new Date('2023-01-01 19:00'),
             dusk: new Date('2023-01-01 21:00'),
             night: new Date('2023-01-01 23:00'),
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any)
 
         return {
@@ -71,7 +71,7 @@ describe('small-timer/time-calculation', () => {
 
         expect(timeCalc.getOnState()).to.equal(true)
         expect(timeCalc.getMinutesToNextEndEvent()).to.equal(180)
-        expect(timeCalc.getMinutesToNextStartEvent()).to.equal(22*60)
+        expect(timeCalc.getMinutesToNextStartEvent()).to.equal(22 * 60)
         expect(timeCalc.noOnStateToday()).to.equal(false)
     })
 
@@ -91,22 +91,28 @@ describe('small-timer/time-calculation', () => {
 
         expect(timeCalc.getOnState()).to.equal(false)
         expect(timeCalc.getMinutesToNextEndEvent()).to.equal(180)
-        expect(timeCalc.getMinutesToNextStartEvent()).to.equal(22*60)
+        expect(timeCalc.getMinutesToNextStartEvent()).to.equal(22 * 60)
         expect(timeCalc.noOnStateToday()).to.equal(true)
     })
 
-    const testData: {startTime:number, endTime: number, wrap:boolean, expectedStart: number, expectedEnd: number }[] = [
+    const testData: {
+        startTime: number,
+        endTime: number,
+        wrap: boolean,
+        expectedStart: number,
+        expectedEnd: number
+    }[] = [
         // dawn / dusk - 06:00 / 21:00
-        {startTime: 5000, endTime: 5001, wrap: false, expectedStart: 1080, expectedEnd: 540},
+        { startTime: 5000, endTime: 5001, wrap: false, expectedStart: 1080, expectedEnd: 540 },
         // sunrise / solarNoon - 05:00 / 11:00
-        {startTime: 5003, endTime: 5002, wrap: false, expectedStart: 1020, expectedEnd: 1380},
+        { startTime: 5003, endTime: 5002, wrap: false, expectedStart: 1020, expectedEnd: 1380 },
         // sunset / night - 19:00 / 23:00
-        {startTime: 5004, endTime: 5005, wrap: false, expectedStart: 420, expectedEnd: 660},
+        { startTime: 5004, endTime: 5005, wrap: false, expectedStart: 420, expectedEnd: 660 },
         // nightEnd / moonrise - 123:00 / 11:00
-        {startTime: 5006, endTime: 5007, wrap: false, expectedStart: 960, expectedEnd: 1380},
+        { startTime: 5006, endTime: 5007, wrap: false, expectedStart: 960, expectedEnd: 1380 },
         // moonset / dawn - :00 / :00
-        {startTime: 5008, endTime: 5000, wrap: false, expectedStart: 0, expectedEnd: 1080},
-        {startTime: 13* 60, endTime: 10090, wrap:false, expectedStart: 60, expectedEnd: 150}
+        { startTime: 5008, endTime: 5000, wrap: false, expectedStart: 0, expectedEnd: 1080 },
+        { startTime: 13 * 60, endTime: 10090, wrap: false, expectedStart: 60, expectedEnd: 150 }
 
     ]
 

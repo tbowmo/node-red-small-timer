@@ -1,7 +1,7 @@
 import { expect } from 'chai'
 import { useSinonSandbox } from '../../test'
 import { ISmallTimerProperties } from '../nodes/common'
-import {SmallTimerRunner} from './small-timer-runner'
+import { SmallTimerRunner } from './small-timer-runner'
 import * as timeCalc from './time-calculation'
 
 describe('small-timer/time-runner', () => {
@@ -11,9 +11,9 @@ describe('small-timer/time-runner', () => {
         const send = sinon.stub().named('node-send')
         const status = sinon.stub().named('node-status')
 
-        const node = {send, status}
-        const position = {latitude: 56.00, longitude: 10.00}
-        const configuration:ISmallTimerProperties = {
+        const node = { send, status }
+        const position = { latitude: 56.00, longitude: 10.00 }
+        const configuration: ISmallTimerProperties = {
             startTime: 0,
             endTime: 0,
             startOffset: 0,
@@ -24,7 +24,7 @@ describe('small-timer/time-runner', () => {
             injectOnStartup: false,
             repeat: false,
             disable: false,
-            rules: [{type: 'include', month: 0, day: 0}],
+            rules: [{ type: 'include', month: 0, day: 0 }],
             timeout: 0,
             wrapMidnight: false,
             id: '',
@@ -75,9 +75,9 @@ describe('small-timer/time-runner', () => {
         stubs.timeCalc.getMinutesToNextEndEvent.returns(30)
         const runner = new SmallTimerRunner(stubs.position, stubs.configuration, stubs.node)
 
-        runner.onMessage({payload: 'on', _msgid: 'some-id'})
+        runner.onMessage({ payload: 'on', _msgid: 'some-id' })
 
-        sinon.assert.calledWithExactly(stubs.status, { fill: 'green', shape: 'ring', text: 'Temporary ON for 05mins'})
+        sinon.assert.calledWithExactly(stubs.status, { fill: 'green', shape: 'ring', text: 'Temporary ON for 05mins' })
     })
 
     it('should handle temporary off and use nextStartEvent to calculate next change', () => {
@@ -88,17 +88,17 @@ describe('small-timer/time-runner', () => {
 
         const runner = new SmallTimerRunner(stubs.position, stubs.configuration, stubs.node)
 
-        runner.onMessage({payload: 'off', _msgid: 'some-id' })
+        runner.onMessage({ payload: 'off', _msgid: 'some-id' })
 
         sinon.assert.calledWithExactly(
             stubs.status.lastCall,
-            {fill: 'blue', shape: 'ring', text: 'Temporary OFF for 20mins'}
+            { fill: 'blue', shape: 'ring', text: 'Temporary OFF for 20mins' }
         )
 
-        runner.onMessage({payload: 'auto', _msgid: 'some-id'})
+        runner.onMessage({ payload: 'auto', _msgid: 'some-id' })
         sinon.assert.calledWithExactly(
             stubs.status.lastCall,
-            {fill:  'blue', shape:'dot', text: 'OFF for 20mins'}
+            { fill: 'blue', shape: 'dot', text: 'OFF for 20mins' }
         )
     })
 
@@ -117,7 +117,7 @@ describe('small-timer/time-runner', () => {
         new SmallTimerRunner(stubs.position, stubs.configuration, stubs.node)
         sinon.clock.tick(60000)
 
-        sinon.assert.calledWithExactly(stubs.status, {fill: 'blue', shape: 'dot', text: 'OFF for 00mins'})
+        sinon.assert.calledWithExactly(stubs.status, { fill: 'blue', shape: 'dot', text: 'OFF for 00mins' })
         sinon.assert.calledWithExactly(stubs.send, {
             state: 'auto',
             stamp: 2000,
@@ -131,7 +131,7 @@ describe('small-timer/time-runner', () => {
         stubs.timeCalc.getOnState.returns(true)
         sinon.clock.tick(60000)
         await Promise.resolve()
-        sinon.assert.calledWithExactly(stubs.status, {fill: 'green', shape: 'dot', text: 'ON for 20mins'})
+        sinon.assert.calledWithExactly(stubs.status, { fill: 'green', shape: 'dot', text: 'ON for 20mins' })
         sinon.assert.calledWithExactly(stubs.send, {
             state: 'auto',
             stamp: 120000,
@@ -144,141 +144,143 @@ describe('small-timer/time-runner', () => {
         })
     })
 
-    it('should toggle output when toggle message received', async () => {
-        const stubs = setupTest({
-            topic: 'test-topic',
-            onMsg: 'on-msg',
-            offMsg: '0',
-            injectOnStartup: true
+    describe('message input', () => {
+        it('should toggle output when toggle message received', async () => {
+            const stubs = setupTest({
+                topic: 'test-topic',
+                onMsg: 'on-msg',
+                offMsg: '0',
+                injectOnStartup: true
+            })
+
+            stubs.timeCalc.getMinutesToNextStartEvent.returns(0)
+            stubs.timeCalc.getMinutesToNextEndEvent.returns(20)
+            stubs.timeCalc.getOnState.returns(false)
+
+            const runner = new SmallTimerRunner(stubs.position, stubs.configuration, stubs.node)
+            sinon.clock.tick(80000)
+
+            sinon.assert.calledWithExactly(stubs.status, { fill: 'blue', shape: 'dot', text: 'OFF for 00mins' })
+            sinon.assert.calledWithExactly(stubs.send, {
+                state: 'auto',
+                stamp: 2000,
+                autoState: true,
+                duration: 0,
+                temporaryManual: false,
+                timeout: 0,
+                payload: '0',
+                topic: 'test-topic'
+            })
+
+            runner.onMessage({ payload: 'toggle', _msgid: 'some-msg' })
+
+            sinon.assert.calledWithExactly(
+                stubs.status.lastCall,
+                { fill: 'green', shape: 'ring', text: 'Temporary ON for 20mins' }
+            )
+            sinon.assert.calledWithExactly(stubs.send.lastCall, {
+                state: 'tempOn',
+                stamp: 80000,
+                autoState: false,
+                duration: 0,
+                temporaryManual: true,
+                timeout: 0,
+                payload: 'on-msg',
+                topic: 'test-topic'
+            })
+
+            runner.onMessage({ payload: 'toggle', _msgid: 'some-msg' })
+
+            sinon.assert.calledWithExactly(
+                stubs.status.lastCall,
+                { fill: 'blue', shape: 'ring', text: 'Temporary OFF for 00mins' }
+            )
+            sinon.assert.calledWithExactly(stubs.send.lastCall, {
+                state: 'tempOff',
+                stamp: 80000,
+                autoState: false,
+                duration: 0,
+                temporaryManual: true,
+                timeout: 0,
+                payload: '0',
+                topic: 'test-topic'
+            })
+
+
         })
 
-        stubs.timeCalc.getMinutesToNextStartEvent.returns(0)
-        stubs.timeCalc.getMinutesToNextEndEvent.returns(20)
-        stubs.timeCalc.getOnState.returns(false)
+        it('should output node status when sync message is received, without changing properties', () => {
+            const stubs = setupTest({
+                topic: 'test-topic',
+                onMsg: 'on-msg',
+                offMsg: '0',
+                injectOnStartup: true
+            })
 
-        const runner = new SmallTimerRunner(stubs.position, stubs.configuration, stubs.node)
-        sinon.clock.tick(80000)
+            stubs.timeCalc.getMinutesToNextStartEvent.returns(0)
+            stubs.timeCalc.getMinutesToNextEndEvent.returns(20)
+            stubs.timeCalc.getOnState.returns(false)
 
-        sinon.assert.calledWithExactly(stubs.status, {fill: 'blue', shape: 'dot', text: 'OFF for 00mins'})
-        sinon.assert.calledWithExactly(stubs.send, {
-            state: 'auto',
-            stamp: 2000,
-            autoState: true,
-            duration: 0,
-            temporaryManual: false,
-            timeout: 0,
-            payload: '0',
-            topic: 'test-topic'
+            const runner = new SmallTimerRunner(stubs.position, stubs.configuration, stubs.node)
+            sinon.clock.tick(80000)
+
+            sinon.assert.calledWithExactly(stubs.status, { fill: 'blue', shape: 'dot', text: 'OFF for 00mins' })
+            sinon.assert.calledWithExactly(stubs.send, {
+                state: 'auto',
+                stamp: 2000,
+                autoState: true,
+                duration: 0,
+                temporaryManual: false,
+                timeout: 0,
+                payload: '0',
+                topic: 'test-topic'
+            })
+
+            runner.onMessage({ payload: 'sync', _msgid: 'some-id' })
+            runner.onMessage({ payload: 'sync', _msgid: 'some-id' })
+            runner.onMessage({ payload: 'sync', _msgid: 'some-id' })
+            runner.onMessage({ payload: 'sync', _msgid: 'some-id' })
+
+            expect(stubs.send.callCount).to.equal(5)
+            expect(stubs.send.lastCall.args).to.deep.equal([{
+                state: 'auto',
+                stamp: 80000,
+                autoState: true,
+                duration: 0,
+                temporaryManual: false,
+                timeout: 0,
+                payload: '0',
+                topic: 'test-topic'
+            }])
         })
 
-        runner.onMessage({payload: 'toggle', _msgid: 'some-msg'})
+        it('should do nothing if invalid message is received', () => {
+            const stubs = setupTest({
+                topic: 'test-topic',
+                onMsg: 'on-msg',
+                offMsg: '0',
+                injectOnStartup: false
+            })
 
-        sinon.assert.calledWithExactly(
-            stubs.status.lastCall,
-            {fill: 'green', shape: 'ring', text: 'Temporary ON for 20mins'}
-        )
-        sinon.assert.calledWithExactly(stubs.send.lastCall, {
-            state: 'tempOn',
-            stamp: 80000,
-            autoState: false,
-            duration: 0,
-            temporaryManual: true,
-            timeout: 0,
-            payload: 'on-msg',
-            topic: 'test-topic'
+            stubs.timeCalc.getMinutesToNextStartEvent.returns(0)
+            stubs.timeCalc.getMinutesToNextEndEvent.returns(20)
+            stubs.timeCalc.getOnState.returns(false)
+
+            const runner = new SmallTimerRunner(stubs.position, stubs.configuration, stubs.node)
+            sinon.clock.tick(80000)
+
+            sinon.assert.calledWithExactly(stubs.status, { fill: 'blue', shape: 'dot', text: 'OFF for 00mins' })
+
+            runner.onMessage({ payload: 'invalid', _msgid: 'some-id' })
+            runner.onMessage({ payload: 'invalid', _msgid: 'some-id' })
+            runner.onMessage({ payload: 'invalid', _msgid: 'some-id' })
+            runner.onMessage({ payload: 'invalid', _msgid: 'some-id' })
+
+            expect(stubs.send.callCount).to.equal(0)
         })
-
-        runner.onMessage({payload: 'toggle', _msgid: 'some-msg'})
-
-        sinon.assert.calledWithExactly(
-            stubs.status.lastCall,
-            {fill: 'blue', shape: 'ring', text: 'Temporary OFF for 00mins'}
-        )
-        sinon.assert.calledWithExactly(stubs.send.lastCall, {
-            state: 'tempOff',
-            stamp: 80000,
-            autoState: false,
-            duration: 0,
-            temporaryManual: true,
-            timeout: 0,
-            payload: '0',
-            topic: 'test-topic'
-        })
-
-
     })
 
-    it('should output node status when sync message is received, without changing properties', () => {
-        const stubs = setupTest({
-            topic: 'test-topic',
-            onMsg: 'on-msg',
-            offMsg: '0',
-            injectOnStartup: true
-        })
-
-        stubs.timeCalc.getMinutesToNextStartEvent.returns(0)
-        stubs.timeCalc.getMinutesToNextEndEvent.returns(20)
-        stubs.timeCalc.getOnState.returns(false)
-
-        const runner = new SmallTimerRunner(stubs.position, stubs.configuration, stubs.node)
-        sinon.clock.tick(80000)
-
-        sinon.assert.calledWithExactly(stubs.status, {fill: 'blue', shape: 'dot', text: 'OFF for 00mins'})
-        sinon.assert.calledWithExactly(stubs.send, {
-            state: 'auto',
-            stamp: 2000,
-            autoState: true,
-            duration: 0,
-            temporaryManual: false,
-            timeout: 0,
-            payload: '0',
-            topic: 'test-topic'
-        })
-
-        runner.onMessage({payload: 'sync', _msgid: 'some-id'})
-        runner.onMessage({payload: 'sync', _msgid: 'some-id'})
-        runner.onMessage({payload: 'sync', _msgid: 'some-id'})
-        runner.onMessage({payload: 'sync', _msgid: 'some-id'})
-
-        expect(stubs.send.callCount).to.equal(5)
-        expect(stubs.send.lastCall.args).to.deep.equal([{
-            state: 'auto',
-            stamp: 80000,
-            autoState: true,
-            duration: 0,
-            temporaryManual: false,
-            timeout: 0,
-            payload: '0',
-            topic: 'test-topic'
-        }])
-    })
-
-    it('should do nothing if invalid message is received', () => {
-        const stubs = setupTest({
-            topic: 'test-topic',
-            onMsg: 'on-msg',
-            offMsg: '0',
-            injectOnStartup: false
-        })
-
-        stubs.timeCalc.getMinutesToNextStartEvent.returns(0)
-        stubs.timeCalc.getMinutesToNextEndEvent.returns(20)
-        stubs.timeCalc.getOnState.returns(false)
-
-        const runner = new SmallTimerRunner(stubs.position, stubs.configuration, stubs.node)
-        sinon.clock.tick(80000)
-
-        sinon.assert.calledWithExactly(stubs.status, {fill: 'blue', shape: 'dot', text: 'OFF for 00mins'})
-
-        runner.onMessage({payload: 'invalid', _msgid: 'some-id'})
-        runner.onMessage({payload: 'invalid', _msgid: 'some-id'})
-        runner.onMessage({payload: 'invalid', _msgid: 'some-id'})
-        runner.onMessage({payload: 'invalid', _msgid: 'some-id'})
-
-        expect(stubs.send.callCount).to.equal(0)
-    })
-
-    it('should stop timer, and not advance anything after cleanup has been called', async() => {
+    it('should stop timer, and not advance anything after cleanup has been called', async () => {
         const stubs = setupTest({
             topic: 'test-topic',
             onMsg: 'on-msg',
@@ -294,7 +296,7 @@ describe('small-timer/time-runner', () => {
         sinon.clock.tick(5000)
         runner.cleanup()
 
-        sinon.assert.calledWithExactly(stubs.status, {fill: 'blue', shape: 'dot', text: 'OFF for 00mins'})
+        sinon.assert.calledWithExactly(stubs.status, { fill: 'blue', shape: 'dot', text: 'OFF for 00mins' })
         sinon.assert.calledWithExactly(stubs.send, {
             state: 'auto',
             stamp: 2000,
@@ -310,5 +312,65 @@ describe('small-timer/time-runner', () => {
         await Promise.resolve()
         expect(stubs.status.callCount).to.equal(1)
         expect(stubs.send.callCount).to.equal(1)
+    })
+
+    describe('rules check', () => {
+        it('should exclude a specific day of week', () => {
+            const stubs = setupTest({
+                rules: [
+                    { type: 'include', month: 0, day: 0 },
+                    { type: 'exclude', month: 12, day: 101 }, // 101 is monday
+                ]
+            })
+            stubs.timeCalc.getMinutesToNextStartEvent.returns(0)
+            stubs.timeCalc.getMinutesToNextEndEvent.returns(20)
+            stubs.timeCalc.getOnState.returns(false)
+
+            const runner = new SmallTimerRunner(stubs.position, stubs.configuration, stubs.node)
+
+            sinon.clock.setSystemTime(new Date('2023-12-04')) // December 4th 2023 is a monday
+            runner.onMessage({ payload: 'sync', _msgid: '' })
+            sinon.assert.calledWithExactly(
+                stubs.status.lastCall,
+                { fill: 'yellow', shape: 'dot', text: 'No action today' }
+            )
+
+            sinon.clock.setSystemTime(new Date('2023-12-05')) // December 4th 2023 is a tuesday
+            runner.onMessage({ payload: 'sync', _msgid: '' })
+            sinon.assert.calledWithExactly(
+                stubs.status.lastCall,
+                { fill: 'blue', shape: 'dot', text: 'OFF for 00mins' }
+            )
+
+        })
+
+        it('should include a day in a excluded month', () => {
+            const stubs = setupTest({
+                rules: [
+                    { type: 'include', month: 0, day: 0 },
+                    { type: 'exclude', month: 5, day: 0 },
+                    { type: 'include', month: 5, day: 11 },
+                ]
+            })
+            stubs.timeCalc.getMinutesToNextStartEvent.returns(0)
+            stubs.timeCalc.getMinutesToNextEndEvent.returns(20)
+            stubs.timeCalc.getOnState.returns(false)
+
+            const runner = new SmallTimerRunner(stubs.position, stubs.configuration, stubs.node)
+
+            sinon.clock.setSystemTime(new Date('2023-05-04'))
+            runner.onMessage({ payload: 'sync', _msgid: '' })
+            sinon.assert.calledWithExactly(
+                stubs.status.lastCall,
+                { fill: 'yellow', shape: 'dot', text: 'No action today' }
+            )
+
+            sinon.clock.setSystemTime(new Date('2023-05-11'))
+            runner.onMessage({ payload: 'sync', _msgid: '' })
+            sinon.assert.calledWithExactly(
+                stubs.status.lastCall,
+                { fill: 'blue', shape: 'dot', text: 'OFF for 00mins' }
+            )
+        })
     })
 })

@@ -141,190 +141,207 @@
         width: 120px !important;
         white-space: nowrap;
     }
+
     .small-timer-options input {
         width: auto !important;
         vertical-align: baseline !important;
     }
+
     .form-tips {
         margin-bottom: 8px;
     }
 </style>
 
 <script type="text/javascript">
-(function() {
-    const monthNames = [
-        {value: 0, label: 'All'},
-        {value: 1, label: "January"},
-        {value: 2, label: "February"},
-        {value: 3, label: "March"},
-        {value: 4, label: "April"},
-        {value: 5, label: "May"},
-        {value: 6, label: "June"},
-        {value: 7, label: "July"},
-        {value: 8, label: "August"},
-        {value: 9, label: "September"},
-        {value: 10, label: "October"},
-        {value: 11, label: "November"},
-        {value: 12, label: "December"}
-    ];
+    (function () {
+        const monthNames = [
+            { value: 0, label: 'All' },
+            { value: 1, label: "January" },
+            { value: 2, label: "February" },
+            { value: 3, label: "March" },
+            { value: 4, label: "April" },
+            { value: 5, label: "May" },
+            { value: 6, label: "June" },
+            { value: 7, label: "July" },
+            { value: 8, label: "August" },
+            { value: 9, label: "September" },
+            { value: 10, label: "October" },
+            { value: 11, label: "November" },
+            { value: 12, label: "December" }
+        ];
 
-    const dayNumbers = Array.apply(null, {length: 31}).map(Number.call, Number).map((item) => ({label: item + 1, value: item + 1}));
-    dayNumbers.unshift({label: 'All', value: 0});
+        const weekDays = [
+            { label: 100, label: 'Sunday' },
+            { value: 101, label: 'Monday' },
+            { value: 102, label: 'Tuesday' },
+            { value: 103, label: 'Wednesday' },
+            { value: 104, label: 'Thursday' },
+            { value: 105, label: 'Friday' },
+            { label: 106, label: 'Saturday' },
+        ]
 
-    const ruleType = [
-         {value: 'include', label: '=='},
-         {value: 'exclude', label: '<>'}
-    ]
+        let dayNumbers = Array.apply(null, { length: 31 }).map(Number.call, Number).map((item) => ({ label: item + 1, value: item + 1 }));
+        dayNumbers.unshift({ label: 'All', value: 0 });
 
-    function exportRule(monthDay) {
-        var type = monthDay?.find(".typeSelect").val();
-        var month = monthDay?.find(".monthSelect").val();
-        var day = monthDay?.find(".daySelect").val();
-        return {type, month, day};
-    }
+        dayNumbers = [
+            ...dayNumbers,
+            ...weekDays,
+        ]
 
-    RED.nodes.registerType('smalltimer', {
-        category: 'advanced-input',
-        color:"#88dd22",
-        inputLabels: "Optional overrides",
-        outputLabels: ["one-off message","outputs every minute","speech/log output"],
-        defaults: {
-            name: {value: 'Small timer', required: true},
-            position: {value:"", type: "position"},
-            startTime: {value: 5001, required: true},
-            endTime: {value: 1425, required: true},
-            startOffset: {value: 0, required: true},
-            endOffset: {value: 0, required: true},
-            onMsg: {value: '1', required: false},
-            offMsg: {value: '0', required: false},
-            topic: {value: '', required: false},
-            injectOnStartup: {value: false, required: true},
-            repeat: {value: false, required: true},
-            rules: {value: [{type: 'include', month: 0, day: 0}]},
-            timeout: {value: 1440, required: true},
-            wrapMidnight: {value: true, required: false},
-        },
-        icon: "timer.png",
-        inputs: 1,
-        outputs: 1,
-        label: function() {
-            return this.name||this.prefix;
-        },
-        labelStyle: function() {
-            return this.name?"node_label_italic":"";
-        },
-        oneditprepare: function() {
-            var node = this
-            generateTimes('#node-input-startTime', false)
-            generateTimes('#node-input-endTime', true)
+        const ruleType = [
+            { value: 'include', label: '==' },
+            { value: 'exclude', label: '<>' }
+        ]
 
-            $("#node-input-rules-container").css('min-height','150px').css('min-width','450px').editableList({
-                header: $("<div>").append($.parseHTML(`
+        function exportRule(monthDay) {
+            var type = monthDay?.find(".typeSelect").val();
+            var month = monthDay?.find(".monthSelect").val();
+            var day = monthDay?.find(".daySelect").val();
+            return { type, month, day };
+        }
+
+        RED.nodes.registerType('smalltimer', {
+            category: 'advanced-input',
+            color: "#88dd22",
+            inputLabels: "Optional overrides",
+            outputLabels: ["one-off message", "outputs every minute", "speech/log output"],
+            defaults: {
+                name: { value: 'Small timer', required: true },
+                position: { value: "", type: "position" },
+                startTime: { value: 5001, required: true },
+                endTime: { value: 1425, required: true },
+                startOffset: { value: 0, required: true },
+                endOffset: { value: 0, required: true },
+                onMsg: { value: '1', required: false },
+                offMsg: { value: '0', required: false },
+                topic: { value: '', required: false },
+                injectOnStartup: { value: false, required: true },
+                repeat: { value: false, required: true },
+                rules: { value: [{ type: 'include', month: 0, day: 0 }] },
+                timeout: { value: 1440, required: true },
+                wrapMidnight: { value: true, required: false },
+            },
+            icon: "timer.png",
+            inputs: 1,
+            outputs: 1,
+            label: function () {
+                return this.name || this.prefix;
+            },
+            labelStyle: function () {
+                return this.name ? "node_label_italic" : "";
+            },
+            oneditprepare: function () {
+                var node = this
+                generateTimes('#node-input-startTime', false)
+                generateTimes('#node-input-endTime', true)
+
+                $("#node-input-rules-container").css('min-height', '150px').css('min-width', '450px').editableList({
+                    header: $("<div>").append($.parseHTML(`
                     <div style='width:20%; display: inline-grid'>Type</div>
                     <div style='width:30%; display: inline-grid'>Month</div>
-                    <div style='display: inline-grid'>Day of month</div>
+                    <div style='display: inline-grid'>Day of month/week</div>
                 `)),
-                scrollOnAdd: true,
-                sortable: true,
-                removable: true,
-                addButton: 'Add rule',
-                addItem: function(container,i,opt) {
-                    var focusValueField = false;
-                    if (!opt.hasOwnProperty('r')) {
-                        opt.r = {};
-                        if (i > 0) {
-                            var lastRule = $("#node-input-rules-container").editableList('getItemAt',i-1);
-                            var exported = exportRule(lastRule.element);
-                            opt.r.month = exported.month;
-                            opt.r.day = exported.day;
-                            opt.r.type = exported.type;
-                            // We could copy the value over as well and preselect it (see the 'activeElement' code below)
-                            // But not sure that feels right. Is copying over the last value 'expected' behaviour?
-                            // It would make sense for an explicit 'copy' action, but not sure where the copy button would
-                            // go for each rule without being wasted space for most users.
-                            // opt.r.v = exportedRule.v;
-                            focusValueField = true;
+                    scrollOnAdd: true,
+                    sortable: true,
+                    removable: true,
+                    addButton: 'Add rule',
+                    addItem: function (container, i, opt) {
+                        var focusValueField = false;
+                        if (!opt.hasOwnProperty('r')) {
+                            opt.r = {};
+                            if (i > 0) {
+                                var lastRule = $("#node-input-rules-container").editableList('getItemAt', i - 1);
+                                var exported = exportRule(lastRule.element);
+                                opt.r.month = exported.month;
+                                opt.r.day = exported.day;
+                                opt.r.type = exported.type;
+                                // We could copy the value over as well and preselect it (see the 'activeElement' code below)
+                                // But not sure that feels right. Is copying over the last value 'expected' behaviour?
+                                // It would make sense for an explicit 'copy' action, but not sure where the copy button would
+                                // go for each rule without being wasted space for most users.
+                                // opt.r.v = exportedRule.v;
+                                focusValueField = true;
+                            }
                         }
-                    }
 
-                    opt.element = container;
-                    var rule = opt.r;
-                    if (!rule.hasOwnProperty('month')) {
-                        rule.month = 0;
-                    }
-                    if (!rule.hasOwnProperty('type')) {
-                        rule.type = 'include';
-                    }
-                    if (!rule.hasOwnProperty('day')) {
-                        rule.day = 0;
-                    }
-                    if (!opt.hasOwnProperty('i')) {
-                        opt._i = Math.floor((0x99999-0x10000)*Math.random()).toString();
-                    }
+                        opt.element = container;
+                        var rule = opt.r;
+                        if (!rule.hasOwnProperty('month')) {
+                            rule.month = 0;
+                        }
+                        if (!rule.hasOwnProperty('type')) {
+                            rule.type = 'include';
+                        }
+                        if (!rule.hasOwnProperty('day')) {
+                            rule.day = 0;
+                        }
+                        if (!opt.hasOwnProperty('i')) {
+                            opt._i = Math.floor((0x99999 - 0x10000) * Math.random()).toString();
+                        }
 
-                    container.css({
-                        overflow: 'hidden',
-                        whiteSpace: 'nowrap',
-                        display: "flex",
-                        "align-items":"center"
-                    });
+                        container.css({
+                            overflow: 'hidden',
+                            whiteSpace: 'nowrap',
+                            display: "flex",
+                            "align-items": "center"
+                        });
 
-                    const row = $('<div></div>',{style:"flex-grow:1"}).appendTo(container);
-                    const typeSelect = $('<select/>',{style:"width:20%; margin-left:5px"}).addClass('typeSelect').appendTo(row);
-                    const monthSelect = $('<select/>',{style:"width:30%; margin-left:5px"}).addClass('monthSelect').appendTo(row);
-                    const daySelect = $('<select/>', {style: "width:40%; margin-left:5px"}).addClass('daySelect').appendTo(row);
+                        const row = $('<div></div>', { style: "flex-grow:1" }).appendTo(container);
+                        const typeSelect = $('<select/>', { style: "width:20%; margin-left:5px" }).addClass('typeSelect').appendTo(row);
+                        const monthSelect = $('<select/>', { style: "width:30%; margin-left:5px" }).addClass('monthSelect').appendTo(row);
+                        const daySelect = $('<select/>', { style: "width:40%; margin-left:5px" }).addClass('daySelect').appendTo(row);
 
-                    ruleType.forEach((r) => {
-                        typeSelect.append($("<option></option>").val(r.value).text(r.label));
-                    })
-                    monthNames.forEach((r) => {
-                        monthSelect.append($("<option></option>").val(r.value).text(r.label));
-                    })
-                    dayNumbers.forEach((r) => {
-                        daySelect.append($("<option></option>").val(r.value).text(r.label));
-                    })
+                        ruleType.forEach((r) => {
+                            typeSelect.append($("<option></option>").val(r.value).text(r.label));
+                        })
+                        monthNames.forEach((r) => {
+                            monthSelect.append($("<option></option>").val(r.value).text(r.label));
+                        })
+                        dayNumbers.forEach((r) => {
+                            daySelect.append($("<option></option>").val(r.value).text(r.label));
+                        })
 
-                    monthSelect.val(rule.month);
-                    typeSelect.val(rule.type);
-                    daySelect.val(rule.day);
+                        monthSelect.val(rule.month);
+                        typeSelect.val(rule.type);
+                        daySelect.val(rule.day);
 
-                },
-                removeItem: function(opt) {
-                    var rules = $("#node-input-rule-container").editableList('items');
-                    rules.each(function(i) {
-                        $(this).find(".node-input-rule-index").html(i+1);
-                        var data = $(this).data('data');
-                    });
-                },
-            });
+                    },
+                    removeItem: function (opt) {
+                        var rules = $("#node-input-rule-container").editableList('items');
+                        rules.each(function (i) {
+                            $(this).find(".node-input-rule-index").html(i + 1);
+                            var data = $(this).data('data');
+                        });
+                    },
+                });
 
-            this.rules.forEach((rule, i) => {
-                $("#node-input-rules-container").editableList('addItem',{r:rule,i:i});
-            })
-        },
-        oneditsave : function() {
-            var rules = $("#node-input-rules-container").editableList('sort').editableList('items');
-            var node = this;
-            node.rules = [];
-            rules.each(function(i) {
-                node.rules.push(exportRule($(this)));
-            });
-            $('#node-input-startTime').val($('#node-input-startTime-select').val());
-            $('#node-input-endTime').val($('#node-input-endTime-select').val());
-        }
-    })
+                this.rules.forEach((rule, i) => {
+                    $("#node-input-rules-container").editableList('addItem', { r: rule, i: i });
+                })
+            },
+            oneditsave: function () {
+                var rules = $("#node-input-rules-container").editableList('sort').editableList('items');
+                var node = this;
+                node.rules = [];
+                rules.each(function (i) {
+                    node.rules.push(exportRule($(this)));
+                });
+                $('#node-input-startTime').val($('#node-input-startTime-select').val());
+                $('#node-input-endTime').val($('#node-input-endTime-select').val());
+            }
+        })
 
-    function generateTimes(selectId, endTime = false) {
-        $(selectId).hide()
-        let html = ''
-        const pad = (n) => `00${n.toFixed(0)}`.substr(-2)
-        for (let time = 0; time < 1439; time +=15) {
-            const minutes = time % 60
-            const hour = Math.floor(time / 60)
-            html = html + `<option value=${time}>${pad(hour)}:${pad(minutes)}</option>`
-        }
+        function generateTimes(selectId, endTime = false) {
+            $(selectId).hide()
+            let html = ''
+            const pad = (n) => `00${n.toFixed(0)}`.substr(-2)
+            for (let time = 0; time < 1439; time += 15) {
+                const minutes = time % 60
+                const hour = Math.floor(time / 60)
+                html = html + `<option value=${time}>${pad(hour)}:${pad(minutes)}</option>`
+            }
 
-        html = html + `
+            html = html + `
         <option value="1439">Day End</option>
         <option value="5000">Dawn</option>
         <option value="5001">Dusk</option>
@@ -336,8 +353,8 @@
         <option value="5007">Moonrise</option>
         <option value="5008">Moonset</option>
         `
-        if (endTime) {
-            html = html + `
+            if (endTime) {
+                html = html + `
             <option value="10001">1 minute</option>
             <option value="10002">2 minutes</option>
             <option value="10005">5 minutes</option>
@@ -348,9 +365,9 @@
             <option value="10090">90 minutes</option>
             <option value="10120">120 minutes</option>
             `
+            }
+            $(`${selectId}-select`).html(html);
+            $(`${selectId}-select`).val($(selectId).val());
         }
-        $(`${selectId}-select`).html(html);
-        $(`${selectId}-select`).val($(selectId).val());
-    }
-})()
+    })()
 </script>
