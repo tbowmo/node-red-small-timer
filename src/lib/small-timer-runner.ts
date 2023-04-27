@@ -33,7 +33,7 @@ export class SmallTimerRunner {
 
     private timeCalc: TimeCalc
 
-    constructor (
+    constructor(
         position: Position,
         configuration: ISmallTimerProperties,
         private node: NodeFunctions
@@ -62,7 +62,7 @@ export class SmallTimerRunner {
         this.startTickTimer()
     }
 
-    private publishState(){
+    private publishState() {
         const on = this.override === 'tempOn' || this.currentState
 
         const msg: SmallTimerChangeMessage = {
@@ -80,19 +80,20 @@ export class SmallTimerRunner {
 
     private isDayOk(date = new Date()): boolean {
         const month = date.getMonth() + 1
-        const day = date.getDate()
-        const weekDay = date.getDay()
+        const dayOfMonth = date.getDate()
+        const dayOfWeek = date.getDay()
 
         const validMonths = [0, month]
-        const validDays = [0, day, weekDay + 100]
+        const validDays = [0, dayOfMonth, dayOfWeek + 100]
 
         let isOk = false
 
         this.rules.forEach((item: Rule) => {
-            item.month = Number(item.month)
-            item.day = Number(item.day)
-            if (validMonths.includes(item.month)
-                && validDays.includes(item.day)) {
+            const ruleMonth = Number(item.month)
+            const ruleDay = Number(item.day)
+
+            if (validMonths.includes(ruleMonth)
+                && validDays.includes(ruleDay)) {
                 isOk = item.type === 'include'
             }
         })
@@ -183,7 +184,7 @@ export class SmallTimerRunner {
                 // Signal that we have turned ON
                 fill = 'green'
                 state = 'ON'
-                nextAutoChange =  this.timeCalc.getMinutesToNextEndEvent()
+                nextAutoChange = this.timeCalc.getMinutesToNextEndEvent()
             }
 
             const nextTimeoutOrAuto = (this.currentTimeout && this.currentTimeout < nextAutoChange)
