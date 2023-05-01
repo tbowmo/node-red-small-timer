@@ -30,19 +30,19 @@ The **repeat** and **inject on startup** checkboxes configures the node to eithe
 ### On / Off time
 This is when the magic happens. Set it to the desired on time and off time using the dropdowns. You can also set an offset (positive or negative), which will add (or subtract) the specified number of minutes to the calculated time, so you can set the light to turn on 30 minutes _after_ sunset, as an example
 
-### Timeout 
-Used when triggering an override of the current state, after set time the node will switch back to whatever the output state should be at the given time
+### Timeout
+Used when triggering an override of the current state, after set time the node will switch back to whatever the output state should be at the given time, if it was in auto mode. This value is split into an on and off timeout. This means that you could have an 5 minutes on timeout (for turning on lights momentarily) while keeping off at default timeout which is 24 hours (or until next state change)
 
 ### Topic
 Topic parameter of the msg that is sent out on events. This can be used to send on to mqtt for example.
 
 ### On message
-Payload of the output message is set to this value during on
+Payload of the output message is set to this value during on, can be set to json, number, string, or boolean
 
 ### Off message
-Payload of the output message is set to this value during off
+Payload of the output message is set to this value during off, can be set to json, number, string, or boolean
 
-### When to run rules
+### Rules
 This can be used to configure what days the rule should / should not run. 
 
 **==** is include, this specifies days where the rule should run
