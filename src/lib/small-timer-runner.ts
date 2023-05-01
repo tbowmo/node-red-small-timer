@@ -1,12 +1,12 @@
 /*eslint complexity: ["error", 13]*/
-import { Node, NodeStatusFill } from 'node-red'
+import { Node, NodeStatusFill, util } from 'node-red'
 import { ISmallTimerProperties, Rule } from '../nodes/common'
 import { SmallTimerChangeMessage, ISmallTimerMessage } from './interfaces'
 import { TimeCalc } from './time-calculation'
 
 type Override = 'auto' | 'tempOn' | 'tempOff'
 
-type NodeFunctions = Pick<Node, 'status' | 'send'>
+type NodeFunctions = Node
 
 type Position = {
     latitude: number,
@@ -26,9 +26,12 @@ export class SmallTimerRunner {
     private topic: string
     private onMsg: string
     private offMsg: string
+    private onMsgType: string
+    private offMsgType: string
     private rules: Rule[]
     private repeat: boolean
-    private timeout: number
+    private onTimeout: number
+    private offTimeout: number
     private currentTimeout = 0
 
     private timeCalc: TimeCalc
@@ -51,9 +54,13 @@ export class SmallTimerRunner {
         this.topic = configuration.topic
         this.onMsg = configuration.onMsg
         this.offMsg = configuration.offMsg
+        this.onMsgType = configuration.onMsgType
+        this.offMsgType = configuration.offMsgType
         this.rules = configuration.rules
         this.repeat = configuration.repeat
-        this.timeout = Number(configuration.timeout)
+
+        this.onTimeout = Number(configuration.onTimeout)
+        this.offTimeout = Number(configuration.offTimeout)
         if (configuration.injectOnStartup) {
             this.startupTock = setTimeout(this.forceSend.bind(this), 2000)
         } else {
@@ -64,6 +71,9 @@ export class SmallTimerRunner {
 
     private publishState() {
         const on = this.override === 'tempOn' || this.currentState
+        const payload = on
+            ? util.evaluateNodeProperty(this.onMsg, this.onMsgType, this.node, {})
+            : util.evaluateNodeProperty(this.offMsg, this.offMsgType, this.node, {})
 
         const msg: SmallTimerChangeMessage = {
             state: this.override,
@@ -72,7 +82,7 @@ export class SmallTimerRunner {
             duration: 0,
             temporaryManual: this.override !== 'auto',
             timeout: this.currentTimeout,
-            payload: on ? this.onMsg : this.offMsg,
+            payload: payload,
             topic: this.topic,
         }
         this.node.send(msg)
@@ -212,7 +222,18 @@ export class SmallTimerRunner {
             this.currentTimeout = 0
             return
         }
-        this.currentTimeout = this.timeout
+
+        // requested temporary state is the same as what would be the current auto state
+        // So let's just set it to auto
+        if ((override === 'tempOn') === this.currentState) {
+            this.override = 'auto'
+            return
+        }
+
+        this.currentTimeout = override === 'tempOn'
+            ? this.onTimeout
+            : this.offTimeout
+
         if ((override === 'tempOn' && !this.currentState)
             || this.currentState) {
             this.publishState()

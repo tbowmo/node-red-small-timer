@@ -71,11 +71,11 @@
         <input type="text" id="node-input-name" placeholder="Name">
     </div>
     <div class="form-row">
-        <label for="node-input-position"><i class="fa fa-tag"></i> Position</label>
+        <label for="node-input-position"><i class="fa fa-map-marker"></i> Position</label>
         <input type="text" id="node-input-position" placeholder="Position">
     </div>
     <div class="form-row">
-        <label><i class="fa fa-tag"></i> Options</label>
+        <label><i class="fa fa-cog"></i> Options</label>
         <div style="display:inline-block;" class="small-timer-options">
             <div>
                 <label><input type="checkbox" id="node-input-repeat"> Repeat</label>
@@ -107,23 +107,30 @@
         <input  style="width:80px" type="text" id="node-input-endOffset" placeholder="0">
     </div>
     <div class="form-row">
-        <label for="node-input-timeout"><i class="fa fa-tag"></i> Timeout for temp override</label>
-        <input type="text" id="node-input-timeout" placeholder="1440">
+        <label>Override timeout</label>
+        <div style="display:inline-block" class="small-timer-overrides">
+            <label for="node-input-onTimeout"> On</label>
+            <input type="text" id="node-input-onTimeout" placeholder="1440">
+            <label for="node-input-offTimeout"> Off</label>
+            <input type="text" id="node-input-offTimeout" placeholder="1440">
+        </div>
     </div>
     <div class="form-row">
-        <label for="node-input-name"><i class="fa fa-tag"></i> Topic</label>
+        <label for="node-input-name"><i class="fa fa-tasks"></i> Topic</label>
         <input type="text" id="node-input-topic" placeholder="Topic">
     </div>
     <div class="form-row">
-        <label for="node-input-onMsg"><i class="fa fa-tag"></i> On message</label>
-        <input type="text" id="node-input-onMsg" placeholder="1">
+        <label for="node-input-onMsg"><i class="fa fa-sign-out"></i> On message</label>
+        <input type="text" id="node-input-onMsg">
+        <input type="hidden" id="node-input-onMsgType">
     </div>
     <div class="form-row">
-        <label for="node-input-offMsg"><i class="fa fa-tag"></i> Off message</label>
-        <input  type="text" id="node-input-offMsg" placeholder="0">
+        <label for="node-input-offMsg"><i class="fa fa-sign-out"></i> Off message</label>
+        <input  type="text" id="node-input-offMsg">
+        <input type="hidden" id="node-input-offMsgType">
     </div>
     <div class="form-row node-input-rules-container-row">
-        <label style="width: 400px;">When to run rules</label>
+        <label style="width: 400px;">Rules</label>
         <ol id="node-input-rules-container"></ol>
     </div>
     <div class="form-tips">
@@ -131,6 +138,15 @@
     </div>
 </script>
 <style>
+    .small-timer-overrides label {
+        width: 40px !important;
+    }
+
+    .small-timer-overrides input {
+        width: 80px !important;
+        margin-right: 8px;
+    }
+
     .small-timer-options label {
         -webkit-user-select: none;
         -khtml-user-select: none;
@@ -204,7 +220,7 @@
             category: 'advanced-input',
             color: "#88dd22",
             inputLabels: "Optional overrides",
-            outputLabels: ["one-off message", "outputs every minute", "speech/log output"],
+            outputLabels: ["one-off message"],
             defaults: {
                 name: { value: 'Small timer', required: true },
                 position: { value: "", type: "position" },
@@ -212,14 +228,25 @@
                 endTime: { value: 1425, required: true },
                 startOffset: { value: 0, required: true },
                 endOffset: { value: 0, required: true },
-                onMsg: { value: '1', required: false },
-                offMsg: { value: '0', required: false },
-                topic: { value: '', required: false },
-                injectOnStartup: { value: false, required: true },
-                repeat: { value: false, required: true },
+
+                topic: { value: '' },
+
+                onMsg: { value: '1' },
+                onMsgType: { value: 'str' },
+                onTimeout: { value: 1440, required: true },
+
+                offMsg: { value: '0' },
+                offMsgType: { value: 'str' },
+                offTimeout: { value: 1440, required: true },
+
                 rules: { value: [{ type: 'include', month: 0, day: 0 }] },
-                timeout: { value: 1440, required: true },
-                wrapMidnight: { value: true, required: false },
+
+                repeat: { value: false, required: true },
+                wrapMidnight: { value: true },
+                injectOnStartup: { value: false, required: true },
+
+                // legacy prop
+                timeout: { value: 1440 }
             },
             icon: "timer.png",
             inputs: 1,
@@ -232,6 +259,27 @@
             },
             oneditprepare: function () {
                 var node = this
+
+                if (node.onTimeout === undefined) {
+                    node.onTimeout = node.timeout
+                    $('#node-input-onTimeout').val(node.timeout)
+                }
+                if (node.offTimeout === undefined) {
+                    node.offTimeout = node.timeout
+                    $('#node-input-offTimeout').val(node.timeout)
+                }
+
+                const onMsgInput = $("#node-input-onMsg").typedInput({
+                    typeField: "#node-input-onMsgType",
+                    default: 'str',
+                    types: ["str", "num", "bool", "json"],
+                });
+                const offMsgInput = $("#node-input-offMsg").typedInput({
+                    typeField: "#node-input-offMsgType",
+                    default: 'str',
+                    types: ["str", "num", "bool", "json"],
+                });
+
                 generateTimes('#node-input-startTime', false)
                 generateTimes('#node-input-endTime', true)
 
