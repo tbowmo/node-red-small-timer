@@ -69,8 +69,15 @@ export class SmallTimerRunner {
         this.startTickTimer()
     }
 
+    private getCurrentState() {
+        return this.override === 'auto'
+            ? this.currentState
+            : (this.override === 'tempOn')
+    }
+
     private publishState() {
-        const on = this.override === 'tempOn' || this.currentState
+        const on = this.getCurrentState()
+
         const payload = on
             ? util.evaluateNodeProperty(this.onMsg, this.onMsgType, this.node, {})
             : util.evaluateNodeProperty(this.offMsg, this.offMsgType, this.node, {})
@@ -190,7 +197,7 @@ export class SmallTimerRunner {
             let state = 'OFF'
             let nextAutoChange = this.timeCalc.getMinutesToNextStartEvent()
 
-            if (this.override === 'tempOn' || this.currentState) {
+            if (this.getCurrentState()) {
                 // Signal that we have turned ON
                 fill = 'green'
                 state = 'ON'
@@ -233,11 +240,6 @@ export class SmallTimerRunner {
         this.currentTimeout = override === 'tempOn'
             ? this.onTimeout
             : this.offTimeout
-
-        if ((override === 'tempOn' && !this.currentState)
-            || this.currentState) {
-            this.publishState()
-        }
     }
 
     /**
