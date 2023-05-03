@@ -269,16 +269,16 @@
                     $('#node-input-offTimeout').val(node.timeout)
                 }
 
-                const onMsgInput = $("#node-input-onMsg").typedInput({
+                $("#node-input-onMsg").typedInput({
                     typeField: "#node-input-onMsgType",
                     default: 'str',
                     types: ["str", "num", "bool", "json"],
-                });
-                const offMsgInput = $("#node-input-offMsg").typedInput({
+                })
+                $("#node-input-offMsg").typedInput({
                     typeField: "#node-input-offMsgType",
                     default: 'str',
                     types: ["str", "num", "bool", "json"],
-                });
+                })
 
                 generateTimes('#node-input-startTime', false)
                 generateTimes('#node-input-endTime', true)
@@ -294,7 +294,6 @@
                     removable: true,
                     addButton: 'Add rule',
                     addItem: function (container, i, opt) {
-                        var focusValueField = false;
                         if (!opt.hasOwnProperty('r')) {
                             opt.r = {};
                             if (i > 0) {
@@ -308,7 +307,6 @@
                                 // It would make sense for an explicit 'copy' action, but not sure where the copy button would
                                 // go for each rule without being wasted space for most users.
                                 // opt.r.v = exportedRule.v;
-                                focusValueField = true;
                             }
                         }
 
@@ -358,7 +356,6 @@
                         var rules = $("#node-input-rule-container").editableList('items');
                         rules.each(function (i) {
                             $(this).find(".node-input-rule-index").html(i + 1);
-                            var data = $(this).data('data');
                         });
                     },
                 });

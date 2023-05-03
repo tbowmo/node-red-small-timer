@@ -1,5 +1,5 @@
 /*eslint complexity: ["error", 13]*/
-import { Node, NodeStatusFill, util } from 'node-red'
+import { Node, NodeStatus, NodeStatusFill, util } from 'node-red'
 import { ISmallTimerProperties, Rule } from '../nodes/common'
 import { SmallTimerChangeMessage, ISmallTimerMessage } from './interfaces'
 import { TimeCalc } from './time-calculation'
@@ -64,6 +64,7 @@ export class SmallTimerRunner {
         if (configuration.injectOnStartup) {
             this.startupTock = setTimeout(this.forceSend.bind(this), 2000)
         } else {
+            this.calcState()
             this.updateStatus()
         }
         this.startTickTimer()
@@ -193,7 +194,7 @@ export class SmallTimerRunner {
 
         if (activeToday || this.override !== 'auto') {
             // default off state
-            fill = 'blue'
+            fill = 'red'
             let state = 'OFF'
             let nextAutoChange = this.timeCalc.getMinutesToNextStartEvent()
 
@@ -214,17 +215,17 @@ export class SmallTimerRunner {
 
             text.push(statusText)
         }
-
-        this.node.status({
+        const status: NodeStatus = {
             fill,
             shape: this.override !== 'auto' ? 'ring' : 'dot',
             text: text.join(' - ')
-        })
+        }
+
+        this.node.status(status)
     }
 
     private doOverride(override: Override) {
         this.override = override
-        this.updateStatus()
         if (override === 'auto') {
             this.currentTimeout = 0
             return
@@ -234,6 +235,7 @@ export class SmallTimerRunner {
         // So let's just set it to auto
         if ((override === 'tempOn') === this.currentState) {
             this.override = 'auto'
+            this.currentTimeout = 0
             return
         }
 
@@ -250,7 +252,10 @@ export class SmallTimerRunner {
     public onMessage(
         incomingMsg: Readonly<ISmallTimerMessage>,
     ) {
-        switch (incomingMsg.payload) {
+        const payload = typeof incomingMsg.payload === 'string'
+            ? incomingMsg.payload.toLocaleLowerCase()
+            : incomingMsg.payload
+        switch (payload) {
             case 0:
             case '0':
             case 'off':
@@ -264,7 +269,7 @@ export class SmallTimerRunner {
                 this.doOverride('tempOn')
                 break
             case 'toggle':
-                this.override = (!(this.override !== 'tempOn') || (this.override === undefined && this.currentState))
+                this.override = ((this.override === 'tempOn') || (this.override === undefined && this.currentState))
                     ? 'tempOff'
                     : 'tempOn'
                 break

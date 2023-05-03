@@ -11,7 +11,7 @@ describe('small-timer/time-runner', () => {
         const send = sinon.stub().named('node-send')
         const status = sinon.stub().named('node-status')
 
-        const node = { send, status }
+        const node = { send, status } as any
         const position = { latitude: 56.00, longitude: 10.00 }
         const configuration: ISmallTimerProperties = {
             startTime: 0,
@@ -25,7 +25,10 @@ describe('small-timer/time-runner', () => {
             repeat: false,
             disable: false,
             rules: [{ type: 'include', month: 0, day: 0 }],
-            timeout: 0,
+            onTimeout: 1440,
+            offTimeout: 1440,
+            offMsgType: 'str',
+            onMsgType: 'str',
             wrapMidnight: false,
             id: '',
             type: '',
@@ -68,7 +71,7 @@ describe('small-timer/time-runner', () => {
 
     it('should handle temporary on and use timeout to calculate next change', () => {
         const stubs = setupTest({
-            timeout: 5
+            onTimeout: 5
         })
 
         stubs.timeCalc.getMinutesToNextStartEvent.returns(20)
@@ -80,25 +83,26 @@ describe('small-timer/time-runner', () => {
         sinon.assert.calledWithExactly(stubs.status, { fill: 'green', shape: 'ring', text: 'Temporary ON for 05mins' })
     })
 
-    it('should handle temporary off and use nextStartEvent to calculate next change', () => {
+    it('should handle temporary off and use nextStartEvent to calculate next change', async () => {
         const stubs = setupTest()
 
         stubs.timeCalc.getMinutesToNextStartEvent.returns(20)
         stubs.timeCalc.getMinutesToNextEndEvent.returns(30)
+        stubs.timeCalc.getOnState.returns(true)
 
         const runner = new SmallTimerRunner(stubs.position, stubs.configuration, stubs.node)
 
         runner.onMessage({ payload: 'off', _msgid: 'some-id' })
 
-        sinon.assert.calledWithExactly(
+        sinon.assert.calledWith(
             stubs.status.lastCall,
-            { fill: 'blue', shape: 'ring', text: 'Temporary OFF for 20mins' }
+            { fill: 'red', shape: 'ring', text: 'Temporary OFF for 20mins' }
         )
 
         runner.onMessage({ payload: 'auto', _msgid: 'some-id' })
         sinon.assert.calledWithExactly(
             stubs.status.lastCall,
-            { fill: 'blue', shape: 'dot', text: 'OFF for 20mins' }
+            { fill: 'green', shape: 'dot', text: 'ON for 30mins' }
         )
     })
 
@@ -117,7 +121,7 @@ describe('small-timer/time-runner', () => {
         new SmallTimerRunner(stubs.position, stubs.configuration, stubs.node)
         sinon.clock.tick(60000)
 
-        sinon.assert.calledWithExactly(stubs.status, { fill: 'blue', shape: 'dot', text: 'OFF for 00mins' })
+        sinon.assert.calledWithExactly(stubs.status, { fill: 'red', shape: 'dot', text: 'OFF for 00mins' })
         sinon.assert.calledWithExactly(stubs.send, {
             state: 'auto',
             stamp: 2000,
@@ -160,7 +164,7 @@ describe('small-timer/time-runner', () => {
             const runner = new SmallTimerRunner(stubs.position, stubs.configuration, stubs.node)
             sinon.clock.tick(80000)
 
-            sinon.assert.calledWithExactly(stubs.status, { fill: 'blue', shape: 'dot', text: 'OFF for 00mins' })
+            sinon.assert.calledWithExactly(stubs.status, { fill: 'red', shape: 'dot', text: 'OFF for 00mins' })
             sinon.assert.calledWithExactly(stubs.send, {
                 state: 'auto',
                 stamp: 2000,
@@ -193,7 +197,7 @@ describe('small-timer/time-runner', () => {
 
             sinon.assert.calledWithExactly(
                 stubs.status.lastCall,
-                { fill: 'blue', shape: 'ring', text: 'Temporary OFF for 00mins' }
+                { fill: 'red', shape: 'ring', text: 'Temporary OFF for 00mins' }
             )
             sinon.assert.calledWithExactly(stubs.send.lastCall, {
                 state: 'tempOff',
@@ -224,7 +228,7 @@ describe('small-timer/time-runner', () => {
             const runner = new SmallTimerRunner(stubs.position, stubs.configuration, stubs.node)
             sinon.clock.tick(80000)
 
-            sinon.assert.calledWithExactly(stubs.status, { fill: 'blue', shape: 'dot', text: 'OFF for 00mins' })
+            sinon.assert.calledWithExactly(stubs.status, { fill: 'red', shape: 'dot', text: 'OFF for 00mins' })
             sinon.assert.calledWithExactly(stubs.send, {
                 state: 'auto',
                 stamp: 2000,
@@ -269,7 +273,7 @@ describe('small-timer/time-runner', () => {
             const runner = new SmallTimerRunner(stubs.position, stubs.configuration, stubs.node)
             sinon.clock.tick(80000)
 
-            sinon.assert.calledWithExactly(stubs.status, { fill: 'blue', shape: 'dot', text: 'OFF for 00mins' })
+            sinon.assert.calledWithExactly(stubs.status, { fill: 'red', shape: 'dot', text: 'OFF for 00mins' })
 
             runner.onMessage({ payload: 'invalid', _msgid: 'some-id' })
             runner.onMessage({ payload: 'invalid', _msgid: 'some-id' })
@@ -296,7 +300,7 @@ describe('small-timer/time-runner', () => {
         sinon.clock.tick(5000)
         runner.cleanup()
 
-        sinon.assert.calledWithExactly(stubs.status, { fill: 'blue', shape: 'dot', text: 'OFF for 00mins' })
+        sinon.assert.calledWithExactly(stubs.status, { fill: 'red', shape: 'dot', text: 'OFF for 00mins' })
         sinon.assert.calledWithExactly(stubs.send, {
             state: 'auto',
             stamp: 2000,
@@ -339,7 +343,7 @@ describe('small-timer/time-runner', () => {
             runner.onMessage({ payload: 'sync', _msgid: '' })
             sinon.assert.calledWithExactly(
                 stubs.status.lastCall,
-                { fill: 'blue', shape: 'dot', text: 'OFF for 00mins' }
+                { fill: 'red', shape: 'dot', text: 'OFF for 00mins' }
             )
 
         })
@@ -369,7 +373,7 @@ describe('small-timer/time-runner', () => {
             runner.onMessage({ payload: 'sync', _msgid: '' })
             sinon.assert.calledWithExactly(
                 stubs.status.lastCall,
-                { fill: 'blue', shape: 'dot', text: 'OFF for 00mins' }
+                { fill: 'red', shape: 'dot', text: 'OFF for 00mins' }
             )
         })
     })

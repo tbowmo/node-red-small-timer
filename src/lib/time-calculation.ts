@@ -1,21 +1,48 @@
 import SunCalc from 'suncalc'
 import { hoursToMinutes } from 'date-fns'
 
+type MoonTimes = keyof SunCalc.GetMoonTimes
+type SunTimes = keyof SunCalc.GetTimesResult
+type MoonAndSun = SunTimes | MoonTimes
+
 /**
  * Encapsulates logic for start and end times, including dynamically adjusted times (sunset, sunrise etc)
  */
 export class TimeCalc {
 
     // times from suncalc, depends on latitude / longitude and time of year
-    private dawn = 0
-    private dusk = 0
-    private moonrise = 0
-    private moonset = 0
-    private night = 0
-    private nightEnd = 0
-    private solarNoon = 0
-    private sunrise = 0
-    private sunset = 0
+    private sunTimes: SunCalc.GetTimesResult | undefined = undefined
+    private moonTimes: SunCalc.GetMoonTimes | undefined = undefined
+
+    private sunLookup: { [key: number]: MoonAndSun } = {
+        // legacy
+        5000: 'dawn',
+        5001: 'dusk',
+        5002: 'solarNoon',
+        5003: 'sunrise',
+        5004: 'sunset',
+        5005: 'night',
+        5006: 'nightEnd',
+        5007: 'rise',
+        5008: 'set',
+        // new
+        5101: 'sunrise',
+        5102: 'sunriseEnd',
+        5103: 'goldenHourEnd',
+        5104: 'solarNoon',
+        5105: 'goldenHour',
+        5106: 'sunsetStart',
+        5107: 'sunset',
+        5108: 'dusk',
+        5109: 'nauticalDusk',
+        5110: 'night',
+        5111: 'nadir',
+        5112: 'nightEnd',
+        5113: 'nauticalDawn',
+        5114: 'dawn',
+        5115: 'rise', // moon
+        5116: 'set', // moon
+    }
 
     private lastSuncalcUpdate = -1
     private actualStart = 0
@@ -54,7 +81,7 @@ export class TimeCalc {
      * @returns
      */
     public getMinutesToNextStartEvent(date = new Date()): number {
-        const currentTime = date.getHours() * 60 + date.getMinutes()
+        const currentTime = this.getMinutes(date)
         const nextEvent = this.actualStart - currentTime
         return nextEvent >= 0 ? nextEvent : nextEvent + 1440
     }
@@ -65,7 +92,7 @@ export class TimeCalc {
      * @returns
      */
     public getMinutesToNextEndEvent(date = new Date()): number {
-        const currentTime = date.getHours() * 60 + date.getMinutes()
+        const currentTime = this.getMinutes(date)
         const nextEvent = this.actualEnd - currentTime
         return nextEvent >= 0 ? nextEvent : nextEvent + 1440
     }
@@ -99,6 +126,10 @@ export class TimeCalc {
         this.actualEnd = this.lookupEventTime(this.endTime, this.actualStart) + this.endOffset
     }
 
+    private getMinutes(date: Date): number {
+        return date.getHours() * 60 + date.getMinutes()
+    }
+
     private updateSunCalc(now = new Date()) {
         // Only necessary to do the calculations once a day
         if (this.lastSuncalcUpdate === now.getDay()) {
@@ -106,37 +137,10 @@ export class TimeCalc {
         }
 
         this.lastSuncalcUpdate = now.getDay()
-        const times = SunCalc.getTimes(now, this.latitude, this.longitude)
-        const moons = SunCalc.getMoonTimes(now, this.latitude, this.longitude)
-
-        this.dawn = (times.dawn.getHours() * 60) + times.dawn.getMinutes()
-        this.dusk = (times.dusk.getHours() * 60) + times.dusk.getMinutes()
-
-        this.solarNoon = (times.solarNoon.getHours() * 60) + times.solarNoon.getMinutes()
-
-        this.sunrise = (times.sunrise.getHours() * 60) + times.sunrise.getMinutes()
-        this.sunset = (times.sunset.getHours() * 60) + times.sunset.getMinutes()
-
-        if (typeof moons.rise === undefined) {
-            this.moonrise = 1440
-        } else {
-            const date = moons.rise
-            this.moonrise = (date.getHours() * 60) + date.getMinutes()
-        }
-
-        if (typeof moons.set === undefined) {
-            this.moonset = 0
-        } else {
-            const date = moons.set
-            this.moonset = (date.getHours() * 60) + date.getMinutes()
-        }
-
-        this.night = (times.night.getHours() * 60) + times.night.getMinutes()
-        this.nightEnd = (times.nightEnd.getHours() * 60) + times.nightEnd.getMinutes()
+        this.sunTimes = SunCalc.getTimes(now, this.latitude, this.longitude)
+        this.moonTimes = SunCalc.getMoonTimes(now, this.latitude, this.longitude)
     }
 
-
-    // eslint-disable-next-line complexity
     private lookupEventTime(time: number, startTime = 0): number {
         if (time <= 1440) {
             return time
@@ -146,25 +150,18 @@ export class TimeCalc {
             return (startTime + (time - 10000)) % 1440
         }
 
-        switch (time) {
-            case 5000:
-                return this.dawn
-            case 5001:
-                return this.dusk
-            case 5002:
-                return this.solarNoon
-            case 5003:
-                return this.sunrise
-            case 5004:
-                return this.sunset
-            case 5005:
-                return this.night
-            case 5006:
-                return this.nightEnd
-            case 5007:
-                return this.moonrise
-            case 5008:
-                return this.moonset
+        const v = this.sunLookup[time]
+
+        if (this.sunTimes && v in this.sunTimes) {
+            const z = this.sunTimes[(v as SunTimes)]
+            return (this.getMinutes(z))
+        }
+
+        if (this.moonTimes && v in this.moonTimes) {
+            const z = this.moonTimes[(v as MoonTimes)]
+            return typeof z === 'object'
+                ? this.getMinutes(z)
+                : (v === 'set' ? 1440 : 0)
         }
 
         throw new Error('Time is more than 1440 (60*24)')
