@@ -83,6 +83,7 @@
             </div>
             <div>
                 <label><input type="checkbox" id="node-input-wrapMidnight" > Wrap midnight</label>
+                <label><input type="checkbox" id="node-input-debugEnable" > Debug enable</label>
             </div>
         </div>
     </div>
@@ -136,6 +137,7 @@
     <div class="form-tips">
         If day exceeds the number of days available in the specified month, it is considered to be the last day of the month.<br/>
     </div>
+    <input id="node-input-outputs" type="hidden" value="1">
 </script>
 <style>
     .small-timer-overrides label {
@@ -220,7 +222,7 @@
             category: 'advanced-input',
             color: "#88dd22",
             inputLabels: "Optional overrides",
-            outputLabels: ["one-off message"],
+            outputLabels: ["status message", "debug output"],
             defaults: {
                 name: { value: 'Small timer', required: true },
                 position: { value: "", type: "position" },
@@ -245,8 +247,10 @@
                 wrapMidnight: { value: true },
                 injectOnStartup: { value: false, required: true },
 
+                debugEnable: {value: false},
                 // legacy prop
-                timeout: { value: 1440 }
+                timeout: { value: 1440 },
+                outputs: {value: 1}
             },
             icon: "timer.png",
             inputs: 1,
@@ -362,6 +366,9 @@
 
                 this.rules.forEach((rule, i) => {
                     $("#node-input-rules-container").editableList('addItem', { r: rule, i: i });
+                })
+                $('#node-input-debugEnable').click(function() {
+                    $('#node-input-outputs').val(this.checked ? 2 : 1)
                 })
             },
             oneditsave: function () {

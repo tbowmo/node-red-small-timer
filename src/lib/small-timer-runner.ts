@@ -1,5 +1,5 @@
 /*eslint complexity: ["error", 13]*/
-import { Node, NodeStatus, NodeStatusFill, util } from 'node-red'
+import { Node, NodeMessage, NodeStatus, NodeStatusFill, util } from 'node-red'
 import { ISmallTimerProperties, Rule } from '../nodes/common'
 import { SmallTimerChangeMessage, ISmallTimerMessage } from './interfaces'
 import { TimeCalc } from './time-calculation'
@@ -35,6 +35,7 @@ export class SmallTimerRunner {
     private currentTimeout = 0
 
     private timeCalc: TimeCalc
+    private debugMode = false
 
     constructor(
         position: Position,
@@ -58,6 +59,7 @@ export class SmallTimerRunner {
         this.offMsgType = configuration.offMsgType
         this.rules = configuration.rules
         this.repeat = configuration.repeat
+        this.debugMode = configuration.debugEnable
 
         this.onTimeout = Number(configuration.onTimeout)
         this.offTimeout = Number(configuration.offTimeout)
@@ -76,14 +78,22 @@ export class SmallTimerRunner {
             : (this.override === 'tempOn')
     }
 
-    private publishState() {
+    public generateDebug(): NodeMessage {
+        return {
+            ...this.timeCalc.debug(),
+            override: this.override,
+            topic: 'debug'
+        } as NodeMessage // we cheat a bit to escape type checking in typescript
+    }
+
+    private generateMsg(): SmallTimerChangeMessage {
         const on = this.getCurrentState()
 
         const payload = on
             ? util.evaluateNodeProperty(this.onMsg, this.onMsgType, this.node, {})
             : util.evaluateNodeProperty(this.offMsg, this.offMsgType, this.node, {})
 
-        const msg: SmallTimerChangeMessage = {
+        return {
             state: this.override,
             stamp: Date.now(),
             autoState: this.override === 'auto',
@@ -93,7 +103,14 @@ export class SmallTimerRunner {
             payload: payload,
             topic: this.topic,
         }
-        this.node.send(msg)
+    }
+
+    private publishState() {
+        if (this.debugMode) {
+            this.node.send([this.generateMsg(),this.generateDebug()])
+        } else {
+            this.node.send(this.generateMsg())
+        }
     }
 
     private isDayOk(date = new Date()): boolean {

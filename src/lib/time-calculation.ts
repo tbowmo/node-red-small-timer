@@ -26,22 +26,22 @@ export class TimeCalc {
         5007: 'rise',
         5008: 'set',
         // new
-        5101: 'sunrise',
-        5102: 'sunriseEnd',
-        5103: 'goldenHourEnd',
-        5104: 'solarNoon',
-        5105: 'goldenHour',
-        5106: 'sunsetStart',
-        5107: 'sunset',
-        5108: 'dusk',
-        5109: 'nauticalDusk',
-        5110: 'night',
-        5111: 'nadir',
-        5112: 'nightEnd',
-        5113: 'nauticalDawn',
-        5114: 'dawn',
-        5115: 'rise', // moon
-        5116: 'set', // moon
+        // 5101: 'sunrise',
+        // 5102: 'sunriseEnd',
+        // 5103: 'goldenHourEnd',
+        // 5104: 'solarNoon',
+        // 5105: 'goldenHour',
+        // 5106: 'sunsetStart',
+        // 5107: 'sunset',
+        // 5108: 'dusk',
+        // 5109: 'nauticalDusk',
+        // 5110: 'night',
+        // 5111: 'nadir',
+        // 5112: 'nightEnd',
+        // 5113: 'nauticalDawn',
+        // 5114: 'dawn',
+        // 5115: 'rise', // moon
+        // 5116: 'set', // moon
     }
 
     private lastSuncalcUpdate = -1
@@ -66,6 +66,36 @@ export class TimeCalc {
         this.eventCalculation()
     }
 
+    public debug() {
+        const sunTimes = Object.fromEntries(Object.values(this.sunLookup)
+            .filter((key) => (this.sunTimes && key in this.sunTimes))
+            .map((key) => {
+                if (this.sunTimes && (key in this.sunTimes)) {
+                    return [key, this.getMinutes(this.sunTimes[(key as SunTimes)])]
+                }
+                return [key, -1]
+            }))
+        const moonTimes = Object.fromEntries(Object.values(this.sunLookup)
+            .filter((key) => (this.moonTimes && key in this.moonTimes))
+            .map((key) => {
+                if (this.moonTimes && (key in this.moonTimes)) {
+                    return [key, this.getMinutes(this.moonTimes[(key as MoonTimes)] as Date)]
+                }
+                return [key, -1]
+            }))
+
+        return {
+            sunTimes,
+            moonTimes,
+            now: this.getMinutes(new Date()),
+            actualStart: this.actualStart,
+            actualEnd: this.actualEnd,
+            nextStart: this.getMinutesToNextStartEvent(),
+            nextEnd: this.getMinutesToNextEndEvent(),
+            onState: this.getOnState(),
+            noOnStateToday: this.noOnStateToday()
+        }
+    }
 
     public setStartEndTime(startTime?: number, endTime?: number, startOffset?: number, endOffset?: number) {
         this.startTime = startTime ?? this.startTime

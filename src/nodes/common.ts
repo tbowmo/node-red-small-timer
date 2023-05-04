@@ -42,4 +42,5 @@ export interface ISmallTimerProperties extends NodeDef {
     onTimeout: number,
     offTimeout: number,
     wrapMidnight: boolean,
+    debugEnable: boolean,
 }

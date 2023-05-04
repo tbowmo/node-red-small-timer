@@ -113,7 +113,6 @@ describe('small-timer/time-calculation', () => {
         // moonset / dawn - :00 / :00
         { startTime: 5008, endTime: 5000, wrap: false, expectedStart: 0, expectedEnd: 1080 },
         { startTime: 13 * 60, endTime: 10090, wrap: false, expectedStart: 60, expectedEnd: 150 }
-
     ]
 
     testData.forEach((data) => {
@@ -135,4 +134,42 @@ describe('small-timer/time-calculation', () => {
         })
     })
 
+    it('should create data suitable for debug', () => {
+        setupTest()
+        sinon.clock.setSystemTime(new Date('2023-01-01 13:00'))
+        const timeCalc = new TimeCalc(
+            10,
+            10,
+            true,
+            5001,
+            5002,
+            0,
+            0
+        )
+
+        expect(timeCalc.debug()).to.deep.equal({
+            moonTimes: {
+                rise: 660,
+                set: 720,
+            },
+            now: 780,
+            sunTimes: {
+                dawn: 360,
+                dusk: 1260,
+                night: 1380,
+                nightEnd: 240,
+                solarNoon: 660,
+                sunrise: 300,
+                sunset: 1140
+            },
+            nextEnd: 1320,
+            nextStart: 480,
+            noOnStateToday: false,
+
+            actualEnd: 660,
+            actualStart: 1260,
+            onState: false,
+
+        })
+    })
 })
