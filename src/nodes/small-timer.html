@@ -264,14 +264,11 @@
             oneditprepare: function () {
                 var node = this
 
-                if (node.onTimeout === undefined) {
-                    node.onTimeout = node.timeout
-                    $('#node-input-onTimeout').val(node.timeout)
-                }
-                if (node.offTimeout === undefined) {
-                    node.offTimeout = node.timeout
-                    $('#node-input-offTimeout').val(node.timeout)
-                }
+                node.onTimeout = node.onTimeout ?? node.timeout
+                $('#node-input-onTimeout').val(node.onTimeout)
+
+                node.offTimeout = node.offTimeout ?? node.timeout
+                $('#node-input-offTimeout').val(node.offTimeout)
 
                 $("#node-input-onMsg").typedInput({
                     typeField: "#node-input-onMsgType",
