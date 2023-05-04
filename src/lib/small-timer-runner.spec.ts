@@ -11,6 +11,7 @@ describe('small-timer/time-runner', () => {
         const send = sinon.stub().named('node-send')
         const status = sinon.stub().named('node-status')
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const node = { send, status } as any
         const position = { latitude: 56.00, longitude: 10.00 }
         const configuration: ISmallTimerProperties = {
@@ -30,6 +31,7 @@ describe('small-timer/time-runner', () => {
             offMsgType: 'str',
             onMsgType: 'str',
             wrapMidnight: false,
+            debugEnable: false,
             id: '',
             type: '',
             name: '',

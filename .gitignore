@@ -48,3 +48,11 @@ gh-pages
 
 # not to be committed, as it's only used as reference during implementation
 src/nodes/big-timer.*
+
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
