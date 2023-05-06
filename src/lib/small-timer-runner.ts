@@ -67,7 +67,7 @@ export class SmallTimerRunner {
             this.startupTock = setTimeout(this.forceSend.bind(this), 2000)
         } else {
             this.calcState()
-            this.updateStatus()
+            this.updateNodeStatus()
         }
         this.startTickTimer()
     }
@@ -107,7 +107,7 @@ export class SmallTimerRunner {
 
     private publishState() {
         if (this.debugMode) {
-            this.node.send([this.generateMsg(),this.generateDebug()])
+            this.node.send([this.generateMsg(), this.generateDebug()])
         } else {
             this.node.send(this.generateMsg())
         }
@@ -156,25 +156,27 @@ export class SmallTimerRunner {
      * Handle timer updates
      */
     private timerEvent() {
+        let doPublish = false
         if (this.currentTimeout > 0) {
             this.currentTimeout -= 1
 
             if (this.currentTimeout === 0 && this.override !== 'auto') {
                 this.override = 'auto'
+                doPublish = true
             }
         }
         const change = this.calcState()
 
-        this.updateStatus()
+        this.updateNodeStatus()
 
-        if (change || this.repeat) {
+        if (change || this.repeat || doPublish) {
             this.publishState()
         }
     }
 
     private forceSend() {
         this.calcState()
-        this.updateStatus()
+        this.updateNodeStatus()
         this.publishState()
     }
 
@@ -195,7 +197,7 @@ export class SmallTimerRunner {
     /**
      * Updates the node status
      */
-    private updateStatus() {
+    private updateNodeStatus() {
         let fill: NodeStatusFill = 'yellow'
         const text: string[] = []
 
@@ -221,16 +223,18 @@ export class SmallTimerRunner {
                 state = 'ON'
                 nextAutoChange = this.timeCalc.getMinutesToNextEndEvent()
             }
-
-            const nextTimeoutOrAuto = (this.currentTimeout && this.currentTimeout < nextAutoChange)
-                ? this.currentTimeout
+            const timeout = this.currentTimeout
+            const nextTimeoutOrAuto = (timeout && timeout < nextAutoChange)
+                ? timeout
                 : nextAutoChange
 
-            const statusText = this.override !== 'auto'
-                ? `Temporary ${state} for ${this.getHourAndMinutes(nextTimeoutOrAuto)}`
-                : `${state} for ${this.getHourAndMinutes(nextTimeoutOrAuto)}`
-
-            text.push(statusText)
+            if (this.override !== 'auto') {
+                text.length = 0 // Reset array
+                text.push(`Temporary ${state} for ${this.getHourAndMinutes(nextTimeoutOrAuto)}`)
+            }
+            else {
+                text.push(`${state} for ${this.getHourAndMinutes(nextTimeoutOrAuto)}`)
+            }
         }
         const status: NodeStatus = {
             fill,
@@ -297,6 +301,7 @@ export class SmallTimerRunner {
             case 'sync':
                 break
             default:
+                this.node.error('Did not understand the command in payload property', incomingMsg)
                 return
         }
         this.forceSend()

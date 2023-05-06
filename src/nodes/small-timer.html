@@ -1,68 +1,46 @@
 <script type="text/html" data-help-name="smalltimer">
     <p>Timing node with sunset, sunrise, dusk, dawn etc possibilities</p>
-    <h3>Details</h3>
-    <p><b>Smalltimer</b> is probably not the ultimate Node-Red timing node, sending messages for start and end conditions at any time, day, month or special day.</p>
-	<p>In the simplest case, Smalltimer requires no input and you need only to consider the first output. But Smalltimer can be much more.</p>
 
-    <h3>Outputs</h3>
+    <h3>Output</h3>
         <dl class="message-properties">
-            <dt>payload <span class="property-type">string</span></dt>
+            <dt>payload <span class="property-type">string | object | number</span></dt>
             <dd>This is set to the value of the onMsg or offMsg properties in the configuration (depending on state)</dd>
-            <dt>topic</dt>
+            <dt>topic <span class="property-type">string</span></dt>
             <dd>Topic set in the configuration properties</dd>
-            <dt>state</dt>
-            <dd>Will be one of : `on`, `off`, or `auto`</dd>
+            <dt>state <span class="property-type">string</span></dt>
+            <dd>Will be one of : `tempOn`, `tempOff`, or `auto`</dd>
         </dl>
-	<h3>Inputs</h3>
+        <p>In auto state the output payload will follow the schedule specified, emitting the specified on / off messages in the node</p>
+        <p>By default the output message will only be sent when state is changing. This can be changed, by ticking of the <i>Repeat</i> checkbox</p>
+
+    <h3>Input</h3>
     <p>
         The input can be used as an override by simply sending a text or numeric message as payload. Valid (case-insensitive) messages passed in via msg.payload include:
     </p>
         <dl class="message-properties">
             <dt class="optional">payload <span class="property-type">string as specified</span></dt>
-            <dd>payload can contain one of the following values
+            <dd>
                 <ul>
                     <li>1 (or on)</li>
                     <li>0 (or off)</li>
                     <li>toggle</li>
                     <li>auto (or default)</li>
-                    <li>manual</li>
                     <li>sync</li>
-                    <li>stop</li>
                 </ul>
             </dd>
-            <dt class="optional">away <span class="property-type">string</span></dt>
-            <dd>
-                the string on this property specifies how many minutes / hours / days you are away, which disables the node for the amount<br/>
-                for example if you want to momentarily disable the automation for 10 hours, you specify a value of 10h, likewise if you want 10 days, you specify 10d
-            </dd>
         </dl>
-    <p>
-        NOTE! if input contains non decodable properties / strings, the input will be ignored, and an error will be emitted to Node-Red
-    </p>
-    <p>For more advanced uses a set of special message properties can be used to send additional data</p>
+    <p>NOTE! if input contains non decodable properties / strings, the input will be ignored, and an error will be emitted to Node-Red</p>
+    <p>if the message payload is set to the string "auto" or "default" then the node will switch back to the current auto state, if it was forced to be on/off</p>
+    <p>The first two override messages (1/0) time-out after 24 hours (1440 minutes, user-settable) OR at the next change of schedule. You can set different timeout values for on and off temporary overrides</p>
 
-    <h3>Manual Overrides</h3>
-    <p>
-        If the payload property in a message is set to either 0 (or off) or 1 (or on), the state is turned either off or on. The state will be kept until either of the following conditions is met<br/>
-        <ul>
-            <li>24 hours has elapsed</li>
-            <li>a new output state is set as a result of the on/off times configured in the node</li>
-        </ul>
-    </p>
-    <p>if the message payload is set to the string "auto" or "default" then the node will switch back to the configured state, if it was forced to be on/off</p>
-	<p>The first two override messages (1/0) time-out after 24 hours (1440 minutes, user-settable) OR at the next change of schedule. If you have also selected "manual" - the outputs will NOT revert back at change of schedule (auto to reset).</p>
-    <p>The schedule can be paused by the interface tick box or by the "manual" command (use the "auto" command to return to normal)</p>
-    <p>The on_override and off_override fields can be used to supercede the set inputs for on and off times (in minutes) - "on_override 20:15" for example (without the quotes) for 8:15pm. These settings are volatile, i.e. not restored when Node-Red is restarted. It may take up to a minute for these controls to take effect. Use for example "on_override" with no arguments to set the auto-on time back to normal.</p>
-	<p>Manual UTC is optional offset (hrs) in case you have a special reason not to have the right time on your computer! Normally 0.</p>
-    <h3>Status Display</h3>
-   <p>Remember, the status display only updates once per minute unless in timer mode (seconds). If you have Smalltimer set to OFF you should see a black "No action today" message - if you use manual inject to override - it may take up to a minute for this message to re-appear.</p>
-   <h3>Dusk, Dawn and More</h3>
-	<p>The Dawn and Dusk offsets can be both positive (+ve) for minutes later or negative (-ve) for minutes earlier.</p>
+    <h3>Details</h3>
+        <p><b>Smalltimer</b> is a Node-Red timing node, sending messages for start and end conditions at any time, day, or month</p>
+        <p>In the simplest case, Smalltimer requires no input and you need only to consider the first output. But Smalltimer can be much more.</p>
 
-  <h3>Special Days</h3>
-   These include special days (i.e. 25/12) and special weekdays (i.e. first Tuesday of the month) and as of v2.0.0 these can be included or excluded.
-   You can if you wish (from v2.3.0 onwards) for example merely turn on Smalltimer one day every month of the year by turning off ALL months and using the 12 special days.
-   For those occasions where "alternative days" are required there are checkbox options to BAN output on even and/or odd days of the month.
+    <h3>References</h3>
+    <ul>
+        <li><a href="https://github.com/tbowmo/node-red-small-timer">Github</a> - The github repository</li>
+    </ul>
 </script>
 
 <script type="text/html" data-template-name="smalltimer">
