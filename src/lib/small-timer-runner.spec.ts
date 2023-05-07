@@ -114,7 +114,7 @@ describe('small-timer/time-runner', () => {
 
         sinon.assert.calledWith(
             stubs.status.lastCall,
-            { fill: 'red', shape: 'dot', text: 'Temporary OFF for 20mins' }
+            { fill: 'red', shape: 'ring', text: 'Temporary OFF for 20mins' }
         )
 
         runner.onMessage({ payload: 'auto', _msgid: 'some-id' })
