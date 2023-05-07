@@ -3,6 +3,7 @@ import { Node, NodeMessage, NodeStatus, NodeStatusFill, util } from 'node-red'
 import { ISmallTimerProperties, Rule } from '../nodes/common'
 import { SmallTimerChangeMessage, ISmallTimerMessage } from './interfaces'
 import { TimeCalc } from './time-calculation'
+import { Timer } from './timer'
 
 type Override = 'auto' | 'tempOn' | 'tempOff'
 
@@ -12,6 +13,8 @@ type Position = {
     latitude: number,
     longitude: number,
 }
+
+const pad = (n: number) => n < 10 ? `0${n.toFixed(0)}` : `${n.toFixed(0)}`
 
 export class SmallTimerRunner {
 
@@ -32,10 +35,12 @@ export class SmallTimerRunner {
     private repeat: boolean
     private onTimeout: number
     private offTimeout: number
-    private currentTimeout = 0
+    // private currentTimeout = 0
 
     private timeCalc: TimeCalc
     private debugMode = false
+
+    private timer = new Timer()
 
     constructor(
         position: Position,
@@ -72,7 +77,11 @@ export class SmallTimerRunner {
         this.startTickTimer()
     }
 
-    private getCurrentState() {
+    /**
+     * Calculates the current state of the output (combines override and auto state)
+     * @returns boolean
+     */
+    private getCurrentState(): boolean {
         return this.override === 'auto'
             ? this.currentState
             : (this.override === 'tempOn')
@@ -99,13 +108,13 @@ export class SmallTimerRunner {
             autoState: this.override === 'auto',
             duration: 0,
             temporaryManual: this.override !== 'auto',
-            timeout: this.currentTimeout,
+            timeout: this.timer.timeLeft(),
             payload: payload,
             topic: this.topic,
         }
     }
 
-    private publishState() {
+    private publishState(): void {
         if (this.debugMode) {
             this.node.send([this.generateMsg(), this.generateDebug()])
         } else {
@@ -155,26 +164,17 @@ export class SmallTimerRunner {
     /**
      * Handle timer updates
      */
-    private timerEvent() {
-        let doPublish = false
-        if (this.currentTimeout > 0) {
-            this.currentTimeout -= 1
-
-            if (this.currentTimeout === 0 && this.override !== 'auto') {
-                this.override = 'auto'
-                doPublish = true
-            }
-        }
+    private timerEvent(): void {
         const change = this.calcState()
 
         this.updateNodeStatus()
 
-        if (change || this.repeat || doPublish) {
+        if (change || this.repeat) {
             this.publishState()
         }
     }
 
-    private forceSend() {
+    private forceSend(): void {
         this.calcState()
         this.updateNodeStatus()
         this.publishState()
@@ -185,19 +185,31 @@ export class SmallTimerRunner {
      * @param time
      * @returns
      */
-    private getHourAndMinutes(time: number): string {
-        const minutes = time % 60
+    private getHumanTime(time: number): string {
         const hour = Math.floor(time / 60)
-        const pad = (n: number) => n < 10 ? `0${n.toFixed(0)}` : `${n.toFixed(0)}`
+        const minutes = time % 60
+        // Seconds are fractions, so we need to "up-cycle" them
+        const seconds = Math.floor((time - Math.floor(time)) * 60)
 
-        const hourStr = hour ? `${pad(hour)}hrs ` : ''
-        return `${hourStr}${pad(minutes)}mins`
+        const str: string[] = []
+
+        if (hour) {
+            str.push(`${pad(hour)}hrs`)
+        }
+        if (minutes >= 2 || hour) {
+            str.push(`${pad(minutes)}mins`)
+        }
+        if (minutes<2 && !hour) {
+            str.push(`${pad(Math.floor(minutes))}mins`)
+            str.push(`${pad(seconds)}secs`)
+        }
+        return str.join(' ')
     }
 
     /**
      * Updates the node status
      */
-    private updateNodeStatus() {
+    private updateNodeStatus(): void {
         let fill: NodeStatusFill = 'yellow'
         const text: string[] = []
 
@@ -215,25 +227,25 @@ export class SmallTimerRunner {
             // default off state
             fill = 'red'
             let state = 'OFF'
-            let nextAutoChange = this.timeCalc.getMinutesToNextStartEvent()
+            let nextAutoChange = this.timeCalc.getTimeToNextStartEvent()
 
             if (this.getCurrentState()) {
                 // Signal that we have turned ON
                 fill = 'green'
                 state = 'ON'
-                nextAutoChange = this.timeCalc.getMinutesToNextEndEvent()
+                nextAutoChange = this.timeCalc.getTimeToNextEndEvent()
             }
-            const timeout = this.currentTimeout
+            const timeout = this.timer.timeLeft()
             const nextTimeoutOrAuto = (timeout && timeout < nextAutoChange)
                 ? timeout
                 : nextAutoChange
 
             if (this.override !== 'auto') {
                 text.length = 0 // Reset array
-                text.push(`Temporary ${state} for ${this.getHourAndMinutes(nextTimeoutOrAuto)}`)
+                text.push(`Temporary ${state} for ${this.getHumanTime(nextTimeoutOrAuto)}`)
             }
             else {
-                text.push(`${state} for ${this.getHourAndMinutes(nextTimeoutOrAuto)}`)
+                text.push(`${state} for ${this.getHumanTime(nextTimeoutOrAuto)}`)
             }
         }
         const status: NodeStatus = {
@@ -245,10 +257,10 @@ export class SmallTimerRunner {
         this.node.status(status)
     }
 
-    private doOverride(override: Override) {
+    private doOverride(override: Override): void {
         this.override = override
         if (override === 'auto') {
-            this.currentTimeout = 0
+            this.timer.stop()
             return
         }
 
@@ -256,13 +268,18 @@ export class SmallTimerRunner {
         // So let's just set it to auto
         if ((override === 'tempOn') === this.currentState) {
             this.override = 'auto'
-            this.currentTimeout = 0
+            this.timer.stop()
             return
         }
 
-        this.currentTimeout = override === 'tempOn'
+        const timeout = override === 'tempOn'
             ? this.onTimeout
             : this.offTimeout
+
+        this.timer.start(timeout, () => {
+            this.override = 'auto'
+            this.forceSend()
+        }) // timeout is given in minutes, while timer is using seconds
     }
 
     /**
@@ -272,7 +289,7 @@ export class SmallTimerRunner {
     // eslint-disable-next-line complexity
     public onMessage(
         incomingMsg: Readonly<ISmallTimerMessage>,
-    ) {
+    ): void {
         const payload = typeof incomingMsg.payload === 'string'
             ? incomingMsg.payload.toLocaleLowerCase()
             : incomingMsg.payload
@@ -290,9 +307,10 @@ export class SmallTimerRunner {
                 this.doOverride('tempOn')
                 break
             case 'toggle':
-                this.override = ((this.override === 'tempOn') || (this.override === undefined && this.currentState))
+                this.doOverride(this.getCurrentState()
                     ? 'tempOff'
                     : 'tempOn'
+                )
                 break
             case 'auto':
             case 'default':
@@ -301,7 +319,7 @@ export class SmallTimerRunner {
             case 'sync':
                 break
             default:
-                this.node.error('Did not understand the command in payload property', incomingMsg)
+                this.node.error('Did not understand the command supplied in payload', incomingMsg)
                 return
         }
         this.forceSend()
@@ -311,24 +329,26 @@ export class SmallTimerRunner {
      * Cleanup before closing down (ie. remove timers)
      */
     /* istanbul ignore next */
-    public cleanup() {
+    public cleanup(): void {
         if (this.startupTock) {
             clearTimeout(this.startupTock)
         }
         this.stopTickTimer()
     }
+
     /* istanbul ignore next */
-    private stopTickTimer() {
+    private stopTickTimer(): void {
         if (this.tickTimer) {
             clearInterval(this.tickTimer)
             this.tickTimer = undefined
         }
     }
 
-    private startTickTimer(interval = 60000) {
-        if (this.tickTimer === undefined) {
-            // only start if we are not running already
-            this.tickTimer = setInterval(this.timerEvent.bind(this), interval)
+    private startTickTimer(interval = 30000): void {
+        if (this.tickTimer) {
+            // Stop old timers, if they are running
+            this.stopTickTimer()
         }
+        this.tickTimer = setInterval(this.timerEvent.bind(this), interval)
     }
 }

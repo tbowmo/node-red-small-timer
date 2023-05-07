@@ -3,6 +3,7 @@ import { useSinonSandbox } from '../../test'
 import { ISmallTimerProperties } from '../nodes/common'
 import { SmallTimerRunner } from './small-timer-runner'
 import * as timeCalc from './time-calculation'
+import * as Timer from './timer'
 
 describe('small-timer/time-runner', () => {
     const sinon = useSinonSandbox()
@@ -10,9 +11,10 @@ describe('small-timer/time-runner', () => {
     function setupTest(config?: Partial<ISmallTimerProperties>) {
         const send = sinon.stub().named('node-send')
         const status = sinon.stub().named('node-status')
+        const error = sinon.stub().named('node-error')
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const node = { send, status } as any
+        const node = { send, status, error } as any
         const position = { latitude: 56.00, longitude: 10.00 }
         const configuration: ISmallTimerProperties = {
             startTime: 0,
@@ -40,27 +42,37 @@ describe('small-timer/time-runner', () => {
         }
 
         const stubbedTimeCalc = {
-            getMinutesToNextStartEvent: sinon.stub(),
-            getMinutesToNextEndEvent: sinon.stub(),
+            getTimeToNextStartEvent: sinon.stub(),
+            getTimeToNextEndEvent: sinon.stub(),
             getOnState: sinon.stub().returns(false),
             noOnStateToday: sinon.stub().returns(false)
         }
+
+        const stubbedTimer = {
+            stop: sinon.stub(),
+            start: sinon.stub(),
+            active: sinon.stub().returns(false),
+            timeLeft: sinon.stub().returns(0),
+        }
+
         return {
             send,
             status,
-            x: sinon.stub(timeCalc, 'TimeCalc').returns(stubbedTimeCalc),
+            TimeCalc: sinon.stub(timeCalc, 'TimeCalc').returns(stubbedTimeCalc),
+            Timer: sinon.stub(Timer, 'Timer').returns(stubbedTimer),
             node,
             position,
             configuration,
-            timeCalc: stubbedTimeCalc
+            stubbedTimeCalc,
+            stubbedTimer,
         }
     }
 
     it('should handle no action today, due to negative on interval', () => {
         const stubs = setupTest()
-        stubs.timeCalc.getMinutesToNextStartEvent.returns(10)
-        stubs.timeCalc.getMinutesToNextEndEvent.returns(20)
-        stubs.timeCalc.noOnStateToday.returns(true)
+        stubs.stubbedTimeCalc.getTimeToNextStartEvent.returns(10)
+        stubs.stubbedTimeCalc.getTimeToNextEndEvent.returns(20)
+        stubs.stubbedTimeCalc.noOnStateToday.returns(true)
 
         new SmallTimerRunner(stubs.position, stubs.configuration, stubs.node)
 
@@ -76,21 +88,25 @@ describe('small-timer/time-runner', () => {
             onTimeout: 5
         })
 
-        stubs.timeCalc.getMinutesToNextStartEvent.returns(20)
-        stubs.timeCalc.getMinutesToNextEndEvent.returns(30)
+        stubs.stubbedTimeCalc.getTimeToNextStartEvent.returns(20)
+        stubs.stubbedTimeCalc.getTimeToNextEndEvent.returns(30)
+        stubs.stubbedTimer.timeLeft.returns(5)
+        stubs.stubbedTimer.active.returns(true)
+
         const runner = new SmallTimerRunner(stubs.position, stubs.configuration, stubs.node)
 
         runner.onMessage({ payload: 'on', _msgid: 'some-id' })
 
         sinon.assert.calledWithExactly(stubs.status, { fill: 'green', shape: 'ring', text: 'Temporary ON for 05mins' })
+        sinon.assert.calledWith(stubs.stubbedTimer.start, 5)
     })
 
     it('should handle temporary off and use nextStartEvent to calculate next change', async () => {
         const stubs = setupTest()
 
-        stubs.timeCalc.getMinutesToNextStartEvent.returns(20)
-        stubs.timeCalc.getMinutesToNextEndEvent.returns(30)
-        stubs.timeCalc.getOnState.returns(true)
+        stubs.stubbedTimeCalc.getTimeToNextStartEvent.returns(20)
+        stubs.stubbedTimeCalc.getTimeToNextEndEvent.returns(30)
+        stubs.stubbedTimeCalc.getOnState.returns(true)
 
         const runner = new SmallTimerRunner(stubs.position, stubs.configuration, stubs.node)
 
@@ -116,14 +132,14 @@ describe('small-timer/time-runner', () => {
             injectOnStartup: true
         })
 
-        stubs.timeCalc.getMinutesToNextStartEvent.returns(0)
-        stubs.timeCalc.getMinutesToNextEndEvent.returns(20)
-        stubs.timeCalc.getOnState.returns(false)
+        stubs.stubbedTimeCalc.getTimeToNextStartEvent.returns(0)
+        stubs.stubbedTimeCalc.getTimeToNextEndEvent.returns(20)
+        stubs.stubbedTimeCalc.getOnState.returns(false)
 
         new SmallTimerRunner(stubs.position, stubs.configuration, stubs.node)
         sinon.clock.tick(60000)
 
-        sinon.assert.calledWithExactly(stubs.status, { fill: 'red', shape: 'dot', text: 'OFF for 00mins' })
+        sinon.assert.calledWithExactly(stubs.status, { fill: 'red', shape: 'dot', text: 'OFF for 00mins 00secs' })
         sinon.assert.calledWithExactly(stubs.send, {
             state: 'auto',
             stamp: 2000,
@@ -134,13 +150,13 @@ describe('small-timer/time-runner', () => {
             payload: '0',
             topic: 'test-topic'
         })
-        stubs.timeCalc.getOnState.returns(true)
+        stubs.stubbedTimeCalc.getOnState.returns(true)
         sinon.clock.tick(60000)
-        await Promise.resolve()
-        sinon.assert.calledWithExactly(stubs.status, { fill: 'green', shape: 'dot', text: 'ON for 20mins' })
-        sinon.assert.calledWithExactly(stubs.send, {
+
+        sinon.assert.calledWithExactly(stubs.status.lastCall, { fill: 'green', shape: 'dot', text: 'ON for 20mins' })
+        sinon.assert.calledWithExactly(stubs.send.lastCall, {
             state: 'auto',
-            stamp: 120000,
+            stamp: 90000,
             autoState: true,
             duration: 0,
             temporaryManual: false,
@@ -159,14 +175,14 @@ describe('small-timer/time-runner', () => {
                 injectOnStartup: true
             })
 
-            stubs.timeCalc.getMinutesToNextStartEvent.returns(0)
-            stubs.timeCalc.getMinutesToNextEndEvent.returns(20)
-            stubs.timeCalc.getOnState.returns(false)
+            stubs.stubbedTimeCalc.getTimeToNextStartEvent.returns(0)
+            stubs.stubbedTimeCalc.getTimeToNextEndEvent.returns(20)
+            stubs.stubbedTimeCalc.getOnState.returns(false)
 
             const runner = new SmallTimerRunner(stubs.position, stubs.configuration, stubs.node)
             sinon.clock.tick(80000)
 
-            sinon.assert.calledWithExactly(stubs.status, { fill: 'red', shape: 'dot', text: 'OFF for 00mins' })
+            sinon.assert.calledWithExactly(stubs.status, { fill: 'red', shape: 'dot', text: 'OFF for 00mins 00secs' })
             sinon.assert.calledWithExactly(stubs.send, {
                 state: 'auto',
                 stamp: 2000,
@@ -199,14 +215,14 @@ describe('small-timer/time-runner', () => {
 
             sinon.assert.calledWithExactly(
                 stubs.status.lastCall,
-                { fill: 'red', shape: 'ring', text: 'Temporary OFF for 00mins' }
+                { fill: 'red', shape: 'dot', text: 'OFF for 00mins 00secs' }
             )
             sinon.assert.calledWithExactly(stubs.send.lastCall, {
-                state: 'tempOff',
+                state: 'auto',
                 stamp: 80000,
-                autoState: false,
+                autoState: true,
                 duration: 0,
-                temporaryManual: true,
+                temporaryManual: false,
                 timeout: 0,
                 payload: '0',
                 topic: 'test-topic'
@@ -223,14 +239,14 @@ describe('small-timer/time-runner', () => {
                 injectOnStartup: true
             })
 
-            stubs.timeCalc.getMinutesToNextStartEvent.returns(0)
-            stubs.timeCalc.getMinutesToNextEndEvent.returns(20)
-            stubs.timeCalc.getOnState.returns(false)
+            stubs.stubbedTimeCalc.getTimeToNextStartEvent.returns(0)
+            stubs.stubbedTimeCalc.getTimeToNextEndEvent.returns(20)
+            stubs.stubbedTimeCalc.getOnState.returns(false)
 
             const runner = new SmallTimerRunner(stubs.position, stubs.configuration, stubs.node)
             sinon.clock.tick(80000)
 
-            sinon.assert.calledWithExactly(stubs.status, { fill: 'red', shape: 'dot', text: 'OFF for 00mins' })
+            sinon.assert.calledWithExactly(stubs.status, { fill: 'red', shape: 'dot', text: 'OFF for 00mins 00secs' })
             sinon.assert.calledWithExactly(stubs.send, {
                 state: 'auto',
                 stamp: 2000,
@@ -260,7 +276,7 @@ describe('small-timer/time-runner', () => {
             }])
         })
 
-        it('should do nothing if invalid message is received', () => {
+        it('should signal error if invalid message is received', () => {
             const stubs = setupTest({
                 topic: 'test-topic',
                 onMsg: 'on-msg',
@@ -268,21 +284,23 @@ describe('small-timer/time-runner', () => {
                 injectOnStartup: false
             })
 
-            stubs.timeCalc.getMinutesToNextStartEvent.returns(0)
-            stubs.timeCalc.getMinutesToNextEndEvent.returns(20)
-            stubs.timeCalc.getOnState.returns(false)
+            stubs.stubbedTimeCalc.getTimeToNextStartEvent.returns(0)
+            stubs.stubbedTimeCalc.getTimeToNextEndEvent.returns(20)
+            stubs.stubbedTimeCalc.getOnState.returns(false)
 
             const runner = new SmallTimerRunner(stubs.position, stubs.configuration, stubs.node)
             sinon.clock.tick(80000)
 
-            sinon.assert.calledWithExactly(stubs.status, { fill: 'red', shape: 'dot', text: 'OFF for 00mins' })
+            sinon.assert.calledWithExactly(stubs.status, { fill: 'red', shape: 'dot', text: 'OFF for 00mins 00secs' })
 
-            runner.onMessage({ payload: 'invalid', _msgid: 'some-id' })
-            runner.onMessage({ payload: 'invalid', _msgid: 'some-id' })
-            runner.onMessage({ payload: 'invalid', _msgid: 'some-id' })
             runner.onMessage({ payload: 'invalid', _msgid: 'some-id' })
 
             expect(stubs.send.callCount).to.equal(0)
+            sinon.assert.calledWith(
+                stubs.node.error,
+                'Did not understand the command supplied in payload',
+                { payload: 'invalid', _msgid: 'some-id' }
+            )
         })
     })
 
@@ -294,15 +312,15 @@ describe('small-timer/time-runner', () => {
             injectOnStartup: true
         })
 
-        stubs.timeCalc.getMinutesToNextStartEvent.returns(0)
-        stubs.timeCalc.getMinutesToNextEndEvent.returns(20)
-        stubs.timeCalc.getOnState.returns(false)
+        stubs.stubbedTimeCalc.getTimeToNextStartEvent.returns(0)
+        stubs.stubbedTimeCalc.getTimeToNextEndEvent.returns(20)
+        stubs.stubbedTimeCalc.getOnState.returns(false)
 
         const runner = new SmallTimerRunner(stubs.position, stubs.configuration, stubs.node)
         sinon.clock.tick(5000)
         runner.cleanup()
 
-        sinon.assert.calledWithExactly(stubs.status, { fill: 'red', shape: 'dot', text: 'OFF for 00mins' })
+        sinon.assert.calledWithExactly(stubs.status, { fill: 'red', shape: 'dot', text: 'OFF for 00mins 00secs' })
         sinon.assert.calledWithExactly(stubs.send, {
             state: 'auto',
             stamp: 2000,
@@ -313,7 +331,7 @@ describe('small-timer/time-runner', () => {
             payload: '0',
             topic: 'test-topic'
         })
-        stubs.timeCalc.getOnState.returns(true)
+        stubs.stubbedTimeCalc.getOnState.returns(true)
         sinon.clock.tick(1200000)
         await Promise.resolve()
         expect(stubs.status.callCount).to.equal(1)
@@ -328,9 +346,9 @@ describe('small-timer/time-runner', () => {
                     { type: 'exclude', month: 12, day: 101 }, // 101 is monday
                 ]
             })
-            stubs.timeCalc.getMinutesToNextStartEvent.returns(0)
-            stubs.timeCalc.getMinutesToNextEndEvent.returns(20)
-            stubs.timeCalc.getOnState.returns(false)
+            stubs.stubbedTimeCalc.getTimeToNextStartEvent.returns(0)
+            stubs.stubbedTimeCalc.getTimeToNextEndEvent.returns(20)
+            stubs.stubbedTimeCalc.getOnState.returns(false)
 
             const runner = new SmallTimerRunner(stubs.position, stubs.configuration, stubs.node)
 
@@ -345,7 +363,7 @@ describe('small-timer/time-runner', () => {
             runner.onMessage({ payload: 'sync', _msgid: '' })
             sinon.assert.calledWithExactly(
                 stubs.status.lastCall,
-                { fill: 'red', shape: 'dot', text: 'OFF for 00mins' }
+                { fill: 'red', shape: 'dot', text: 'OFF for 00mins 00secs' }
             )
 
         })
@@ -358,9 +376,9 @@ describe('small-timer/time-runner', () => {
                     { type: 'include', month: 5, day: 11 },
                 ]
             })
-            stubs.timeCalc.getMinutesToNextStartEvent.returns(0)
-            stubs.timeCalc.getMinutesToNextEndEvent.returns(20)
-            stubs.timeCalc.getOnState.returns(false)
+            stubs.stubbedTimeCalc.getTimeToNextStartEvent.returns(0)
+            stubs.stubbedTimeCalc.getTimeToNextEndEvent.returns(20)
+            stubs.stubbedTimeCalc.getOnState.returns(false)
 
             const runner = new SmallTimerRunner(stubs.position, stubs.configuration, stubs.node)
 
@@ -375,7 +393,7 @@ describe('small-timer/time-runner', () => {
             runner.onMessage({ payload: 'sync', _msgid: '' })
             sinon.assert.calledWithExactly(
                 stubs.status.lastCall,
-                { fill: 'red', shape: 'dot', text: 'OFF for 00mins' }
+                { fill: 'red', shape: 'dot', text: 'OFF for 00mins 00secs' }
             )
         })
     })

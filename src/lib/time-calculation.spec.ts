@@ -46,13 +46,13 @@ describe('small-timer/time-calculation', () => {
 
         sinon.assert.calledWith(stubs.getTimes, currentTime, 10, 10)
         expect(timeCalc.getOnState()).to.equal(true)
-        expect(timeCalc.getMinutesToNextStartEvent()).to.equal(1320)
-        expect(timeCalc.getMinutesToNextEndEvent()).to.equal(120)
+        expect(timeCalc.getTimeToNextStartEvent()).to.equal(1320)
+        expect(timeCalc.getTimeToNextEndEvent()).to.equal(120)
 
         timeCalc.setStartEndTime(minutes + 120, minutes + 180, -5, -10)
         expect(timeCalc.getOnState()).to.equal(false)
-        expect(timeCalc.getMinutesToNextStartEvent()).to.equal(115)
-        expect(timeCalc.getMinutesToNextEndEvent()).to.equal(170)
+        expect(timeCalc.getTimeToNextStartEvent()).to.equal(115)
+        expect(timeCalc.getTimeToNextEndEvent()).to.equal(170)
     })
 
     it('should wrap around midnight', () => {
@@ -70,8 +70,8 @@ describe('small-timer/time-calculation', () => {
         )
 
         expect(timeCalc.getOnState()).to.equal(true)
-        expect(timeCalc.getMinutesToNextEndEvent()).to.equal(180)
-        expect(timeCalc.getMinutesToNextStartEvent()).to.equal(22 * 60)
+        expect(timeCalc.getTimeToNextEndEvent()).to.equal(180)
+        expect(timeCalc.getTimeToNextStartEvent()).to.equal(22 * 60)
         expect(timeCalc.noOnStateToday()).to.equal(false)
     })
 
@@ -90,8 +90,8 @@ describe('small-timer/time-calculation', () => {
         )
 
         expect(timeCalc.getOnState()).to.equal(false)
-        expect(timeCalc.getMinutesToNextEndEvent()).to.equal(180)
-        expect(timeCalc.getMinutesToNextStartEvent()).to.equal(22 * 60)
+        expect(timeCalc.getTimeToNextEndEvent()).to.equal(180)
+        expect(timeCalc.getTimeToNextStartEvent()).to.equal(22 * 60)
         expect(timeCalc.noOnStateToday()).to.equal(true)
     })
 
@@ -129,8 +129,8 @@ describe('small-timer/time-calculation', () => {
                 0
             )
 
-            expect(timeCalc.getMinutesToNextStartEvent()).to.equal(data.expectedStart, 'startEvent')
-            expect(timeCalc.getMinutesToNextEndEvent()).to.equal(data.expectedEnd, 'endTime')
+            expect(timeCalc.getTimeToNextStartEvent()).to.equal(data.expectedStart, 'startEvent')
+            expect(timeCalc.getTimeToNextEndEvent()).to.equal(data.expectedEnd, 'endTime')
         })
     })
 
