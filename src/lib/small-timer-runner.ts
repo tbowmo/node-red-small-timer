@@ -1,5 +1,6 @@
 /*eslint complexity: ["error", 13]*/
-import { Node, NodeMessage, NodeStatus, NodeStatusFill, util } from 'node-red'
+import { Node, NodeMessage, NodeStatus, NodeStatusFill } from 'node-red'
+import { util } from '@node-red/util'
 import { ISmallTimerProperties, Rule } from '../nodes/common'
 import { SmallTimerChangeMessage, ISmallTimerMessage } from './interfaces'
 import { TimeCalc } from './time-calculation'
