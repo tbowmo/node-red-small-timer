@@ -543,7 +543,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@node-red/util@npm:3.0.2":
+"@node-red/util@npm:*, @node-red/util@npm:3.0.2":
   version: 3.0.2
   resolution: "@node-red/util@npm:3.0.2"
   dependencies:
@@ -699,6 +699,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tbowmo/node-red-small-timer@workspace:."
   dependencies:
+    "@node-red/util": "*"
     "@types/chai": ^4.3.5
     "@types/mocha": ^10.0.1
     "@types/node": ^20.1.0
