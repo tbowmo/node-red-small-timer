@@ -3,11 +3,17 @@
         <label for="node-config-input-name"><i class="fa fa-tag"></i> Name</label>
         <input type="text" id="node-config-input-name" placeholder="Name" />
     </div>
-    <div class="form-row" id="node-config-input-latitude-row">
+    <div class="form-row">
+        <label></label>
+        <button type="button" id="getPosition" class="red-ui-button">
+            Get position from browser
+        </button>
+    </div>
+    <div class="form-row node-config-input-latitude-row">
         <label for="node-config-input-latitude"><i class="fa fa-file"></i> latitude</label>
         <input type="text" id="node-config-input-latitude" />
     </div>
-    <div class="form-row" id="node-config-input-longitude-row">
+    <div class="form-row node-config-input-longitude-row">
         <label for="node-config-input-longitude"><i class="fa fa-file"></i> longitude</label>
         <input type="text" id="node-config-input-longitude" />
     </div>
@@ -15,7 +21,16 @@
 
 <script type="text/x-red" data-help-name="position">
     <p>
-        Stores a latitude / longitude pair to be used in all your small timer nodes across node-red
+        Configuration node for small-timer
+    </p>
+    <h3>Details</h3>
+    <p>
+        Stores a latitude / longitude pair for use in small timer, this is used to calculate
+        sunrise, sunset etc. times for your exact location
+    </p>
+    <p>
+        Use the button <code>Get position from browser</code> to autofill the input fields
+        with location provided by your browser
     </p>
 </script>
 
@@ -31,11 +46,17 @@
             return `${this.name || this.prefix} (${this.latitude}, ${this.longitude})`
         },
         oneditprepare: function() {
+            $('#getPosition').on('click', () => {
+                navigator.geolocation.getCurrentPosition(function (position) {
+                        $('#node-config-input-latitude').val(Number(position.coords.latitude.toFixed(5)));
+                        $('#node-config-input-longitude').val(Number(position.coords.longitude.toFixed(5)));
+                    });
+            })
         },
         oneditsave: function() {
             var node = this
-            node.latitude = $('#node-config-input-latitude')
-            node.longitude = $('#node-config-input-longitude')
+            node.latitude = $('#node-input-latitude')
+            node.longitude = $('#node-input-longitude')
         }
     })
 </script>

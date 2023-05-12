@@ -98,6 +98,8 @@ Note that if you do a temporary on / off to the same state that the automode wil
 
 Sending the auto (or default) to small timer, will cause it to return to automode (if it was in a temporary on/off state earlier).
 
+**NOTE!** if the input payload property contains non decodable properties / strings, the input will be ignored, and an error will be emitted to Node-Red
+
 # Debug
 
 When debug is enabled, the node will have a secondary output, which emits data from the suncalc calculations for sunrise/sunset etc. This data will be emitted at the same time as the main output is emitted (at changes, or when sync is sent to the input)
