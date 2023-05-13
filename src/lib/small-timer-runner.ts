@@ -1,4 +1,4 @@
-/*eslint complexity: ["error", 13]*/
+/*eslint complexity: ["error", 12]*/
 import { Node, NodeMessage, NodeStatus, NodeStatusFill } from 'node-red'
 import { util } from '@node-red/util'
 import { ISmallTimerProperties, Rule } from '../nodes/common'
@@ -237,7 +237,7 @@ export class SmallTimerRunner {
                 nextAutoChange = this.timeCalc.getTimeToNextEndEvent()
             }
             const timeout = this.timer.timeLeft()
-            const nextTimeoutOrAuto = (timeout && timeout < nextAutoChange)
+            const nextTimeoutOrAuto = timeout && (timeout < nextAutoChange)
                 ? timeout
                 : nextAutoChange
 
@@ -249,6 +249,7 @@ export class SmallTimerRunner {
                 text.push(`${state} for ${this.getHumanTime(nextTimeoutOrAuto)}`)
             }
         }
+
         const status: NodeStatus = {
             fill,
             shape: this.override !== 'auto' ? 'ring' : 'dot',
@@ -280,7 +281,7 @@ export class SmallTimerRunner {
         this.timer.start(timeout, () => {
             this.override = 'auto'
             this.forceSend()
-        }) // timeout is given in minutes, while timer is using seconds
+        })
     }
 
     /**
