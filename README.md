@@ -1,4 +1,5 @@
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=tbowmo_node-red-small-timer&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=tbowmo_node-red-small-timer)
+![Sonar cloud test](https://github.com/tbowmo/node-red-small-timer/actions/workflows/sonarcloud.yml/badge.svg)
 ![Build status](https://github.com/tbowmo/node-red-small-timer/actions/workflows/test-coverage.yml/badge.svg)
 
 # Node-red-small-timer
