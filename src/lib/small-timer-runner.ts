@@ -281,7 +281,7 @@ export class SmallTimerRunner {
         this.timer.start(timeout, () => {
             this.override = 'auto'
             this.forceSend()
-        }) // timeout is given in minutes, while timer is using seconds
+        })
     }
 
     /**
