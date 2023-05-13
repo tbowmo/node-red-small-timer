@@ -134,6 +134,29 @@ describe('small-timer/time-calculation', () => {
         })
     })
 
+    it('should handle that moon time set rise could be false', () => {
+        const stubs = setupTest()
+        sinon.clock.setSystemTime(new Date('2023-01-01 12:00'))
+        stubs.getMoonTimes.returns({
+            rise: false,
+            set: false,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any)
+
+        const timeCalc = new TimeCalc(
+            10,
+            10,
+            false,
+            5007,
+            5008,
+            0,
+            0
+        )
+
+        expect(timeCalc.getTimeToNextStartEvent()).to.equal(0, 'startEvent')
+        expect(timeCalc.getTimeToNextEndEvent()).to.equal(0, 'endTime')
+    })
+
     it('should throw error if time can not be looked up', () => {
         setupTest()
         sinon.clock.setSystemTime(new Date('2023-01-01 13:00'))
