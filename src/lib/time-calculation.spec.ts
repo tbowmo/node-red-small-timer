@@ -136,7 +136,7 @@ describe('small-timer/time-calculation', () => {
 
     it('should handle that moon time set rise could be false', () => {
         const stubs = setupTest()
-        sinon.clock.setSystemTime(new Date('2023-01-01 12:00'))
+        sinon.clock.setSystemTime(new Date('2023-01-01 12:05'))
         stubs.getMoonTimes.returns({
             rise: false,
             set: false,
@@ -153,8 +153,8 @@ describe('small-timer/time-calculation', () => {
             0
         )
 
-        expect(timeCalc.getTimeToNextStartEvent()).to.equal(0, 'startEvent')
-        expect(timeCalc.getTimeToNextEndEvent()).to.equal(0, 'endTime')
+        expect(timeCalc.getTimeToNextStartEvent()).to.equal(715, 'startEvent')
+        expect(timeCalc.getTimeToNextEndEvent()).to.equal(715, 'endTime')
     })
 
     it('should throw error if time can not be looked up', () => {
