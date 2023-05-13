@@ -45,7 +45,8 @@ describe('small-timer/time-runner', () => {
             getTimeToNextStartEvent: sinon.stub(),
             getTimeToNextEndEvent: sinon.stub(),
             getOnState: sinon.stub().returns(false),
-            noOnStateToday: sinon.stub().returns(false)
+            noOnStateToday: sinon.stub().returns(false),
+            debug: sinon.stub().returns({debug: 'this is debug'}),
         }
 
         const stubbedTimer = {
@@ -133,7 +134,7 @@ describe('small-timer/time-runner', () => {
         })
 
         stubs.stubbedTimeCalc.getTimeToNextStartEvent.returns(0)
-        stubs.stubbedTimeCalc.getTimeToNextEndEvent.returns(20)
+        stubs.stubbedTimeCalc.getTimeToNextEndEvent.returns(120.6)
         stubs.stubbedTimeCalc.getOnState.returns(false)
 
         new SmallTimerRunner(stubs.position, stubs.configuration, stubs.node)
@@ -153,7 +154,10 @@ describe('small-timer/time-runner', () => {
         stubs.stubbedTimeCalc.getOnState.returns(true)
         sinon.clock.tick(60000)
 
-        sinon.assert.calledWithExactly(stubs.status.lastCall, { fill: 'green', shape: 'dot', text: 'ON for 20mins' })
+        sinon.assert.calledWithExactly(
+            stubs.status.lastCall,
+            { fill: 'green', shape: 'dot', text: 'ON for 02hrs 01mins' }
+        )
         sinon.assert.calledWithExactly(stubs.send.lastCall, {
             state: 'auto',
             stamp: 90000,
@@ -164,6 +168,71 @@ describe('small-timer/time-runner', () => {
             payload: 'on-msg',
             topic: 'test-topic'
         })
+    })
+
+    it('should send update together with an debug message when debug is enabled', () => {
+        const stubs = setupTest({
+            topic: 'test-topic',
+            onMsg:'on',
+            offMsg: 'off',
+            injectOnStartup: true,
+            debugEnable: true,
+        })
+
+        stubs.stubbedTimeCalc.getTimeToNextStartEvent.returns(0)
+        stubs.stubbedTimeCalc.getTimeToNextEndEvent.returns(120.6)
+        stubs.stubbedTimeCalc.getOnState.returns(false)
+
+        new SmallTimerRunner(stubs.position, stubs.configuration, stubs.node)
+
+        sinon.clock.tick(2000)
+        sinon.assert.calledWith(stubs.send, [
+            {
+                state: 'auto',
+                stamp: 2000,
+                autoState: true,
+                duration: 0,
+                temporaryManual: false,
+                timeout: 0,
+                payload: 'off',
+                topic: 'test-topic'
+            },
+            { debug: 'this is debug', override: 'auto', topic: 'debug' }
+        ])
+
+    })
+    it('should stop timer, and not advance anything after cleanup has been called', async () => {
+        const stubs = setupTest({
+            topic: 'test-topic',
+            onMsg: 'on-msg',
+            offMsg: '0',
+            injectOnStartup: true
+        })
+
+        stubs.stubbedTimeCalc.getTimeToNextStartEvent.returns(0)
+        stubs.stubbedTimeCalc.getTimeToNextEndEvent.returns(20)
+        stubs.stubbedTimeCalc.getOnState.returns(false)
+
+        const runner = new SmallTimerRunner(stubs.position, stubs.configuration, stubs.node)
+        sinon.clock.tick(5000)
+        runner.cleanup()
+
+        sinon.assert.calledWithExactly(stubs.status, { fill: 'red', shape: 'dot', text: 'OFF for 00mins 00secs' })
+        sinon.assert.calledWithExactly(stubs.send, {
+            state: 'auto',
+            stamp: 2000,
+            autoState: true,
+            duration: 0,
+            temporaryManual: false,
+            timeout: 0,
+            payload: '0',
+            topic: 'test-topic'
+        })
+        stubs.stubbedTimeCalc.getOnState.returns(true)
+        sinon.clock.tick(1200000)
+        await Promise.resolve()
+        expect(stubs.status.callCount).to.equal(1)
+        expect(stubs.send.callCount).to.equal(1)
     })
 
     describe('message input', () => {
@@ -302,40 +371,6 @@ describe('small-timer/time-runner', () => {
                 { payload: 'invalid', _msgid: 'some-id' }
             )
         })
-    })
-
-    it('should stop timer, and not advance anything after cleanup has been called', async () => {
-        const stubs = setupTest({
-            topic: 'test-topic',
-            onMsg: 'on-msg',
-            offMsg: '0',
-            injectOnStartup: true
-        })
-
-        stubs.stubbedTimeCalc.getTimeToNextStartEvent.returns(0)
-        stubs.stubbedTimeCalc.getTimeToNextEndEvent.returns(20)
-        stubs.stubbedTimeCalc.getOnState.returns(false)
-
-        const runner = new SmallTimerRunner(stubs.position, stubs.configuration, stubs.node)
-        sinon.clock.tick(5000)
-        runner.cleanup()
-
-        sinon.assert.calledWithExactly(stubs.status, { fill: 'red', shape: 'dot', text: 'OFF for 00mins 00secs' })
-        sinon.assert.calledWithExactly(stubs.send, {
-            state: 'auto',
-            stamp: 2000,
-            autoState: true,
-            duration: 0,
-            temporaryManual: false,
-            timeout: 0,
-            payload: '0',
-            topic: 'test-topic'
-        })
-        stubs.stubbedTimeCalc.getOnState.returns(true)
-        sinon.clock.tick(1200000)
-        await Promise.resolve()
-        expect(stubs.status.callCount).to.equal(1)
-        expect(stubs.send.callCount).to.equal(1)
     })
 
     describe('rules check', () => {

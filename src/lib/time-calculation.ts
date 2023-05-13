@@ -45,7 +45,7 @@ export class TimeCalc {
         // 5116: 'set', // moon
     }
 
-    private lastSuncalcUpdate = -1
+    private lastSunCalcUpdate = -1
     private actualStart = 0
     private actualEnd = 0
 
@@ -107,7 +107,7 @@ export class TimeCalc {
     }
 
     /**
-     * Get number of time to next start event. Will add 24 hours if negative
+     * Get number of minutes to next start event. Will add 24 hours if negative
      * @param date optional date object
      * @returns
      */
@@ -118,7 +118,7 @@ export class TimeCalc {
     }
 
     /**
-     * Get number of time to next end event, will add 24 hours if negative
+     * Get number of minutes to next end event, will add 24 hours if negative
      * @param date optional date object
      * @returns
      */
@@ -168,11 +168,11 @@ export class TimeCalc {
 
     private updateSunCalc(now = new Date()) {
         // Only necessary to do the calculations once a day
-        if (this.lastSuncalcUpdate === now.getDay()) {
+        if (this.lastSunCalcUpdate === now.getDay()) {
             return
         }
 
-        this.lastSuncalcUpdate = now.getDay()
+        this.lastSunCalcUpdate = now.getDay()
         this.sunTimes = SunCalc.getTimes(now, this.latitude, this.longitude)
         this.moonTimes = SunCalc.getMoonTimes(now, this.latitude, this.longitude)
     }
@@ -195,11 +195,12 @@ export class TimeCalc {
 
         if (this.moonTimes && v in this.moonTimes) {
             const z = this.moonTimes[(v as MoonTimes)]
-            return typeof z === 'object'
-                ? this.getTime(z)
-                : (v === 'set' ? wholeDay : 0)
+            if (typeof z === 'object') {
+                return this.getTime(z)
+            }
+            return v === 'set' ? wholeDay : 0
         }
 
-        throw new Error('Time is more than 1440 (60*24)')
+        throw new Error(`Can't look up the correct time '${time}' '${startTime}'`)
     }
 }

@@ -1,17 +1,17 @@
 import { expect } from 'chai'
 import { useSinonSandbox } from '../../test'
 import { TimeCalc } from './time-calculation'
-import suncalc from 'suncalc'
+import sunCalc from 'suncalc'
 
 describe('small-timer/time-calculation', () => {
     const sinon = useSinonSandbox()
 
     function setupTest() {
-        const getMoonTimes = sinon.stub(suncalc, 'getMoonTimes').returns({
+        const getMoonTimes = sinon.stub(sunCalc, 'getMoonTimes').returns({
             rise: new Date('2023-01-01 11:00'),
             set: new Date('2023-01-01 12:00')
         })
-        const getTimes = sinon.stub(suncalc, 'getTimes').returns({
+        const getTimes = sinon.stub(sunCalc, 'getTimes').returns({
             nightEnd: new Date('2023-01-01 04:00'),
             sunrise: new Date('2023-01-01 05:00'),
             dawn: new Date('2023-01-01 06:00'),
@@ -132,6 +132,24 @@ describe('small-timer/time-calculation', () => {
             expect(timeCalc.getTimeToNextStartEvent()).to.equal(data.expectedStart, 'startEvent')
             expect(timeCalc.getTimeToNextEndEvent()).to.equal(data.expectedEnd, 'endTime')
         })
+    })
+
+    it('should throw error if time can not be looked up', () => {
+        setupTest()
+        sinon.clock.setSystemTime(new Date('2023-01-01 13:00'))
+
+        const timeCalc = new TimeCalc(
+            10,
+            10,
+            true,
+            5000,
+            5001,
+            0,
+            0,
+        )
+
+        expect(timeCalc.setStartEndTime.bind(timeCalc, 6001, 6002))
+            .to.throw('Can\'t look up the correct time \'6001\' \'0\'')
     })
 
     it('should create data suitable for debug', () => {

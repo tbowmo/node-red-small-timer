@@ -2,7 +2,7 @@
 const granularity = 60000
 
 /**
- * Basic "timer" class, handles timeouts in seconds, and can give feedback on current number of seconds
+ * Basic "timer" class, handles timeouts in minutes, and can give feedback on current number of minutes
  * left until timer expires.
  */
 export class Timer {
@@ -12,7 +12,7 @@ export class Timer {
     /**
      * Starts a new timer in minutes, an optional callback can be given to call when timer runs out
      *
-     * @param desiredTimeout timeout in seconds
+     * @param desiredTimeout timeout in minutes
      * @param cb optional callback to call when timeout is reached
      */
     public start(desiredTimeout: number, cb?: () => void) {
@@ -46,7 +46,7 @@ export class Timer {
     }
 
     /**
-     * @returns Number of seconds until timer runs out
+     * @returns Number of minutes until timer runs out
      */
     public timeLeft() {
         const time = this.currentTimeout - Date.now()
