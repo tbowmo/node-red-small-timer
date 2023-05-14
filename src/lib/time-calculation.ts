@@ -6,6 +6,10 @@ type MoonAndSun = SunTimes | MoonTimes
 
 const wholeDay = 1440 // Whole day in minutes
 
+function isNotUndefined<T>(input: T): input is Exclude<T, undefined> {
+    return input !== undefined
+}
+
 /**
  * Encapsulates logic for start and end times, including dynamically adjusted times (sunset, sunrise etc)
  */
@@ -48,6 +52,7 @@ export class TimeCalc {
     private lastSunCalcUpdate = -1
     private actualStart = 0
     private actualEnd = 0
+    private lastRecalcTime = -1
 
     /**
      *
@@ -67,23 +72,29 @@ export class TimeCalc {
         this.eventCalculation()
     }
 
+    private convertDateToTime<
+        T extends (SunCalc.GetTimesResult | SunCalc.GetMoonTimes),
+        P extends keyof T
+    >(
+        times: T | undefined
+    ): Record<string, number> {
+        return Object.fromEntries(Object.values(this.sunLookup)
+            .map((key) => {
+                if (times && (key in times)) {
+                    return [key, this.getTime(times[(key as P)] as Date)]
+                }
+            })
+            .filter(isNotUndefined))
+    }
+
+    /**
+     * Get debug information from sunCalc
+     * @returns debug information
+     */
     public debug() {
-        const sunTimes = Object.fromEntries(Object.values(this.sunLookup)
-            .filter((key) => (this.sunTimes && key in this.sunTimes))
-            .map((key) => {
-                if (this.sunTimes && (key in this.sunTimes)) {
-                    return [key, this.getTime(this.sunTimes[(key as SunTimes)])]
-                }
-                return [key, -1]
-            }))
-        const moonTimes = Object.fromEntries(Object.values(this.sunLookup)
-            .filter((key) => (this.moonTimes && key in this.moonTimes))
-            .map((key) => {
-                if (this.moonTimes && (key in this.moonTimes)) {
-                    return [key, this.getTime(this.moonTimes[(key as MoonTimes)] as Date)]
-                }
-                return [key, -1]
-            }))
+        const sunTimes = this.convertDateToTime(this.sunTimes)
+
+        const moonTimes = this.convertDateToTime(this.moonTimes)
 
         return {
             sunTimes,
@@ -98,12 +109,31 @@ export class TimeCalc {
         }
     }
 
-    public setStartEndTime(startTime?: number, endTime?: number, startOffset?: number, endOffset?: number) {
-        this.startTime = startTime ?? this.startTime
-        this.endTime = endTime ?? this.endTime
-        this.startOffset = startOffset ?? this.startOffset
-        this.endOffset = endOffset ?? this.endOffset
-        this.eventCalculation()
+    /**
+     * Sets a new start / end time. any undefined props keeps the current value
+     * @param startTime
+     * @param endTime
+     * @param startOffset
+     * @param endOffset
+     */
+    public setStartEndTime(
+        startTime = this.startTime,
+        endTime = this.endTime,
+        startOffset = this.startOffset,
+        endOffset = this.endOffset
+    ) {
+        const changedProp = !(
+            startTime === this.startTime
+            && endTime === this.endTime
+            && startOffset === this.startOffset
+            && endOffset === this.endOffset
+        )
+
+        this.startTime = startTime
+        this.endTime = endTime
+        this.startOffset = startOffset
+        this.endOffset = endOffset
+        this.eventCalculation(changedProp)
     }
 
     /**
@@ -136,6 +166,9 @@ export class TimeCalc {
      */
     public getOnState(date = new Date()): boolean {
         const currentTime = this.getTime(date)
+
+        this.eventCalculation(false, date)
+
         if (this.actualEnd < this.actualStart) {
             return this.wrapMidnight && ((currentTime < this.actualEnd) || (currentTime > this.actualStart))
         }
@@ -151,8 +184,12 @@ export class TimeCalc {
         return !this.wrapMidnight && (this.actualEnd < this.actualStart)
     }
 
-    private eventCalculation(now = new Date()) {
+    private eventCalculation(forceUpdate = false, now = new Date()) {
         this.updateSunCalc(now)
+        if (!forceUpdate && this.lastRecalcTime === now.getDate()) {
+            return
+        }
+        this.lastRecalcTime = now.getDate()
         this.actualStart = this.lookupEventTime(this.startTime) + this.startOffset
         this.actualEnd = this.lookupEventTime(this.endTime, this.actualStart) + this.endOffset
     }
