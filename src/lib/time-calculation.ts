@@ -6,6 +6,10 @@ type MoonAndSun = SunTimes | MoonTimes
 
 const wholeDay = 1440 // Whole day in minutes
 
+export function isNotUndefined<T>(input: T): input is Exclude<T, undefined> {
+    return input !== undefined
+}
+
 /**
  * Encapsulates logic for start and end times, including dynamically adjusted times (sunset, sunrise etc)
  */
@@ -48,6 +52,7 @@ export class TimeCalc {
     private lastSunCalcUpdate = -1
     private actualStart = 0
     private actualEnd = 0
+    private lastRecalcTime = -1
 
     /**
      *
@@ -67,23 +72,29 @@ export class TimeCalc {
         this.eventCalculation()
     }
 
+    private convertDateToTime<
+        T extends (SunCalc.GetTimesResult | SunCalc.GetMoonTimes),
+        P extends keyof T
+    >(
+        times: T | undefined
+    ): Record<string, number> {
+        return Object.fromEntries(Object.values(this.sunLookup)
+            .map((key) => {
+                if (times && (key in times)) {
+                    return [key, this.getTime(times[(key as P)] as Date)]
+                }
+            })
+            .filter(isNotUndefined))
+    }
+
+    /**
+     * Get debug information from sunCalc
+     * @returns debug information
+     */
     public debug() {
-        const sunTimes = Object.fromEntries(Object.values(this.sunLookup)
-            .filter((key) => (this.sunTimes && key in this.sunTimes))
-            .map((key) => {
-                if (this.sunTimes && (key in this.sunTimes)) {
-                    return [key, this.getTime(this.sunTimes[(key as SunTimes)])]
-                }
-                return [key, -1]
-            }))
-        const moonTimes = Object.fromEntries(Object.values(this.sunLookup)
-            .filter((key) => (this.moonTimes && key in this.moonTimes))
-            .map((key) => {
-                if (this.moonTimes && (key in this.moonTimes)) {
-                    return [key, this.getTime(this.moonTimes[(key as MoonTimes)] as Date)]
-                }
-                return [key, -1]
-            }))
+        const sunTimes = this.convertDateToTime(this.sunTimes)
+
+        const moonTimes = this.convertDateToTime(this.moonTimes)
 
         return {
             sunTimes,
@@ -98,6 +109,13 @@ export class TimeCalc {
         }
     }
 
+    /**
+     * Sets a new start / end time. any undefined props keeps the current value
+     * @param startTime
+     * @param endTime
+     * @param startOffset
+     * @param endOffset
+     */
     public setStartEndTime(startTime?: number, endTime?: number, startOffset?: number, endOffset?: number) {
         this.startTime = startTime ?? this.startTime
         this.endTime = endTime ?? this.endTime
@@ -136,10 +154,28 @@ export class TimeCalc {
      */
     public getOnState(date = new Date()): boolean {
         const currentTime = this.getTime(date)
+
+        this.recalculateTimes(date)
+
         if (this.actualEnd < this.actualStart) {
             return this.wrapMidnight && ((currentTime < this.actualEnd) || (currentTime > this.actualStart))
         }
         return (currentTime > this.actualStart) && (currentTime < this.actualEnd)
+    }
+
+    /**
+     * Recalculates the on/off times, including sunCalc if needed.
+     * @param date
+     * @returns void
+     */
+    public recalculateTimes(date = new Date()): void {
+        const dayOfMonth = date.getDate()
+        // Only do the recalculation once a day
+        if (this.lastRecalcTime === dayOfMonth) {
+            return
+        }
+        this.lastRecalcTime = dayOfMonth
+        this.eventCalculation()
     }
 
     /**
