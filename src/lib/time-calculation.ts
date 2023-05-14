@@ -6,7 +6,7 @@ type MoonAndSun = SunTimes | MoonTimes
 
 const wholeDay = 1440 // Whole day in minutes
 
-export function isNotUndefined<T>(input: T): input is Exclude<T, undefined> {
+function isNotUndefined<T>(input: T): input is Exclude<T, undefined> {
     return input !== undefined
 }
 
