@@ -116,12 +116,24 @@ export class TimeCalc {
      * @param startOffset
      * @param endOffset
      */
-    public setStartEndTime(startTime?: number, endTime?: number, startOffset?: number, endOffset?: number) {
-        this.startTime = startTime ?? this.startTime
-        this.endTime = endTime ?? this.endTime
-        this.startOffset = startOffset ?? this.startOffset
-        this.endOffset = endOffset ?? this.endOffset
-        this.eventCalculation()
+    public setStartEndTime(
+        startTime = this.startTime,
+        endTime = this.endTime,
+        startOffset = this.startOffset,
+        endOffset = this.endOffset
+    ) {
+        const changedProp = !(
+            startTime === this.startTime
+            && endTime === this.endTime
+            && startOffset === this.startOffset
+            && endOffset === this.endOffset
+        )
+
+        this.startTime = startTime
+        this.endTime = endTime
+        this.startOffset = startOffset
+        this.endOffset = endOffset
+        this.eventCalculation(changedProp)
     }
 
     /**
@@ -155,27 +167,12 @@ export class TimeCalc {
     public getOnState(date = new Date()): boolean {
         const currentTime = this.getTime(date)
 
-        this.recalculateTimes(date)
+        this.eventCalculation(false, date)
 
         if (this.actualEnd < this.actualStart) {
             return this.wrapMidnight && ((currentTime < this.actualEnd) || (currentTime > this.actualStart))
         }
         return (currentTime > this.actualStart) && (currentTime < this.actualEnd)
-    }
-
-    /**
-     * Recalculates the on/off times, including sunCalc if needed.
-     * @param date
-     * @returns void
-     */
-    public recalculateTimes(date = new Date()): void {
-        const dayOfMonth = date.getDate()
-        // Only do the recalculation once a day
-        if (this.lastRecalcTime === dayOfMonth) {
-            return
-        }
-        this.lastRecalcTime = dayOfMonth
-        this.eventCalculation()
     }
 
     /**
@@ -187,8 +184,12 @@ export class TimeCalc {
         return !this.wrapMidnight && (this.actualEnd < this.actualStart)
     }
 
-    private eventCalculation(now = new Date()) {
+    private eventCalculation(forceUpdate = false, now = new Date()) {
         this.updateSunCalc(now)
+        if (!forceUpdate && this.lastRecalcTime === now.getDate()) {
+            return
+        }
+        this.lastRecalcTime = now.getDate()
         this.actualStart = this.lookupEventTime(this.startTime) + this.startOffset
         this.actualEnd = this.lookupEventTime(this.endTime, this.actualStart) + this.endOffset
     }
