@@ -88,7 +88,7 @@ export class SmallTimerRunner {
             : (this.override === 'tempOn')
     }
 
-    public generateDebug(): NodeMessage {
+    private generateDebug(): NodeMessage {
         return {
             ...this.timeCalc.debug(),
             override: this.override,
@@ -290,7 +290,7 @@ export class SmallTimerRunner {
      */
     // eslint-disable-next-line complexity
     public onMessage(
-        incomingMsg: Readonly<ISmallTimerMessage>,
+        incomingMsg: Readonly<ISmallTimerMessage>
     ): void {
         const payload = typeof incomingMsg.payload === 'string'
             ? incomingMsg.payload.toLocaleLowerCase()
@@ -321,8 +321,7 @@ export class SmallTimerRunner {
             case 'sync':
                 break
             default:
-                this.node.error('Did not understand the command supplied in payload', incomingMsg)
-                return
+                throw new Error(`Did not understand the command '${incomingMsg.payload}' supplied in payload`)
         }
         this.forceSend()
     }

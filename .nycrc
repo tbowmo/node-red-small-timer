@@ -16,7 +16,7 @@
 		"**/*.spec.ts"
 	],
 	"include": [
-		"src/lib/**/*.ts"
+		"src/**/*.ts"
 	],
 	"extension": [
 		".ts"
