@@ -3,7 +3,7 @@ import { useSinonSandbox } from '../../test'
 import { TimeCalc } from './time-calculation'
 import sunCalc from 'suncalc'
 
-describe('small-timer/time-calculation', () => {
+describe('lib/time-calculation', () => {
     const sinon = useSinonSandbox()
 
     function setupTest() {

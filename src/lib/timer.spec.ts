@@ -2,7 +2,7 @@ import { expect } from 'chai'
 import { useSinonSandbox } from '../../test'
 import { Timer } from './timer'
 
-describe('small-timer/timer', () => {
+describe('lib/timer', () => {
     const sinon = useSinonSandbox()
 
     it('should start a timer', () => {

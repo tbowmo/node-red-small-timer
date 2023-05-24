@@ -25,7 +25,7 @@ export interface ISmallTimerNode extends Node {
 }
 
 export interface ISmallTimerProperties extends NodeDef {
-    position?: string,
+    position: string,
     startTime: number,
     endTime: number,
     startOffset: number,

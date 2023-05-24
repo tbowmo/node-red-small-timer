@@ -5,7 +5,7 @@ import { SmallTimerRunner } from './small-timer-runner'
 import * as timeCalc from './time-calculation'
 import * as Timer from './timer'
 
-describe('small-timer/time-runner', () => {
+describe('lib/small-timer-runner', () => {
     const sinon = useSinonSandbox()
 
     function setupTest(config?: Partial<ISmallTimerProperties>) {
@@ -17,6 +17,7 @@ describe('small-timer/time-runner', () => {
         const node = { send, status, error } as any
         const position = { latitude: 56.00, longitude: 10.00 }
         const configuration: ISmallTimerProperties = {
+            position: '',
             startTime: 0,
             endTime: 0,
             startOffset: 0,
@@ -362,14 +363,10 @@ describe('small-timer/time-runner', () => {
 
             sinon.assert.calledWithExactly(stubs.status, { fill: 'red', shape: 'dot', text: 'OFF for 00mins 00secs' })
 
-            runner.onMessage({ payload: 'invalid', _msgid: 'some-id' })
+            expect(runner.onMessage.bind(runner.onMessage, { payload: 'invalid', _msgid: 'some-id' }))
+                .to.throw('Did not understand the command \'invalid\' supplied in payload')
 
             expect(stubs.send.callCount).to.equal(0)
-            sinon.assert.calledWith(
-                stubs.node.error,
-                'Did not understand the command supplied in payload',
-                { payload: 'invalid', _msgid: 'some-id' }
-            )
         })
     })
 
