@@ -31,7 +31,7 @@ describe('node/small-timer', () => {
         }
     }
 
-    it('Should load and initialize node', function (done) {
+    it('Should load and initialize node', async () => {
         const stubs = setupStub()
         
         const flow  = [
@@ -60,7 +60,8 @@ describe('node/small-timer', () => {
             } 
         ]
 
-        helper.load(smallTimer, flow, function () {
+        await helper.load(smallTimer, flow)
+        await new Promise((resolve, reject) => {
             const n1 = helper.getNode('n1')
             try {
                 expect(n1).to.have.property('name').which.equals('small-timer')
@@ -89,9 +90,9 @@ describe('node/small-timer', () => {
                     wrapMidnight: false,
                     _users: []                  
                 })
-                done()
+                resolve(1)
             } catch(err) {
-                done(err)
+                reject(err)
             }
         })
     })
@@ -137,4 +138,50 @@ describe('node/small-timer', () => {
             }
         })
     })
+
+    it('should handle return error if runner throws an error', async () => {
+        const stubs = setupStub()
+        stubs.onMessage.throws(new Error('test error'))
+
+        const flow  = [
+            { 
+                id: 'n1', 
+                position: 'home-position',
+                type: 'smalltimer', 
+                name: 'small-timer', 
+                debugEnable: false,
+                disable: false,
+                endOffset: 0,
+                endTime: 0,
+                injectOnStartup: false,
+                offMsg: '',
+                offMsgType: '',
+                offTimeout: 0,
+                onMsg: '',
+                onMsgType: '',
+                onTimeout: 0,
+                repeat: false,
+                rules: [],
+                startOffset: 0,
+                startTime: 0,
+                topic: '',
+                wrapMidnight: false,
+            } 
+        ]
+
+        await helper.load(smallTimer, flow)
+        await new Promise((resolve, reject) => {
+            const n1 = helper.getNode('n1')
+            try {
+                n1.error = (err) => {
+                    expect(err).to.deep.equal(Error('test error'))
+                }
+                n1.receive({payload: 'test', _msgid: 'testid'})
+                resolve(1)
+            } catch (e) {
+                reject(e)
+            }
+        })
+    })
+
 })
