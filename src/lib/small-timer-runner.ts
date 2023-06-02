@@ -1,5 +1,10 @@
 /*eslint complexity: ["error", 12]*/
-import { Node, NodeMessage, NodeStatus, NodeStatusFill } from 'node-red'
+import {
+    Node,
+    NodeMessage,
+    NodeStatus,
+    NodeStatusFill,
+} from 'node-red'
 import { util } from '@node-red/util'
 import { ISmallTimerProperties, Rule } from '../nodes/common'
 import { SmallTimerChangeMessage, ISmallTimerMessage } from './interfaces'
@@ -46,7 +51,7 @@ export class SmallTimerRunner {
     constructor(
         position: Position,
         configuration: ISmallTimerProperties,
-        private node: NodeFunctions
+        private node: NodeFunctions,
     ) {
         this.timeCalc = new TimeCalc(
             Number(position.latitude),
@@ -92,7 +97,7 @@ export class SmallTimerRunner {
         return {
             ...this.timeCalc.debug(),
             override: this.override,
-            topic: 'debug'
+            topic: 'debug',
         } as NodeMessage // we cheat a bit to escape type checking in typescript
     }
 
@@ -253,7 +258,7 @@ export class SmallTimerRunner {
         const status: NodeStatus = {
             fill,
             shape: this.override !== 'auto' ? 'ring' : 'dot',
-            text: text.join(' - ')
+            text: text.join(' - '),
         }
 
         this.node.status(status)
@@ -290,38 +295,38 @@ export class SmallTimerRunner {
      */
     // eslint-disable-next-line complexity
     public onMessage(
-        incomingMsg: Readonly<ISmallTimerMessage>
+        incomingMsg: Readonly<ISmallTimerMessage>,
     ): void {
         const payload = typeof incomingMsg.payload === 'string'
             ? incomingMsg.payload.toLocaleLowerCase()
             : incomingMsg.payload
         switch (payload) {
-            case 0:
-            case '0':
-            case 'off':
-            case false:
-                this.doOverride('tempOff')
-                break
-            case 1:
-            case '1':
-            case 'on':
-            case true:
-                this.doOverride('tempOn')
-                break
-            case 'toggle':
-                this.doOverride(this.getCurrentState()
-                    ? 'tempOff'
-                    : 'tempOn'
-                )
-                break
-            case 'auto':
-            case 'default':
-                this.doOverride('auto')
-                break
-            case 'sync':
-                break
-            default:
-                throw new Error(`Did not understand the command '${incomingMsg.payload}' supplied in payload`)
+        case 0:
+        case '0':
+        case 'off':
+        case false:
+            this.doOverride('tempOff')
+            break
+        case 1:
+        case '1':
+        case 'on':
+        case true:
+            this.doOverride('tempOn')
+            break
+        case 'toggle':
+            this.doOverride(this.getCurrentState()
+                ? 'tempOff'
+                : 'tempOn',
+            )
+            break
+        case 'auto':
+        case 'default':
+            this.doOverride('auto')
+            break
+        case 'sync':
+            break
+        default:
+            throw new Error(`Did not understand the command '${incomingMsg.payload}' supplied in payload`)
         }
         this.forceSend()
     }

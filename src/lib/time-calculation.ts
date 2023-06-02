@@ -76,7 +76,7 @@ export class TimeCalc {
         T extends (SunCalc.GetTimesResult | SunCalc.GetMoonTimes),
         P extends keyof T
     >(
-        times: T | undefined
+        times: T | undefined,
     ): Record<string, number> {
         return Object.fromEntries(Object.values(this.sunLookup)
             .map((key) => {
@@ -105,7 +105,7 @@ export class TimeCalc {
             nextStart: this.getTimeToNextStartEvent(),
             nextEnd: this.getTimeToNextEndEvent(),
             onState: this.getOnState(),
-            noOnStateToday: this.noOnStateToday()
+            noOnStateToday: this.noOnStateToday(),
         }
     }
 
@@ -120,7 +120,7 @@ export class TimeCalc {
         startTime = this.startTime,
         endTime = this.endTime,
         startOffset = this.startOffset,
-        endOffset = this.endOffset
+        endOffset = this.endOffset,
     ) {
         const changedProp = !(
             startTime === this.startTime

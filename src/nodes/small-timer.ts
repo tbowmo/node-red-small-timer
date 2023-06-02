@@ -1,5 +1,9 @@
 import { NodeAPI } from 'node-red'
-import { IPositionNode, ISmallTimerNode, ISmallTimerProperties } from './common'
+import {
+    IPositionNode,
+    ISmallTimerNode,
+    ISmallTimerProperties,
+} from './common'
 import { SmallTimerRunner } from '../lib/small-timer-runner'
 
 export = (RED: NodeAPI): void => {
@@ -16,7 +20,7 @@ export = (RED: NodeAPI): void => {
             this.smallTimer = new SmallTimerRunner(
                 this.position,
                 props,
-                this
+                this,
             )
 
             this.on('input', (msg, _send, done) => {
@@ -32,6 +36,6 @@ export = (RED: NodeAPI): void => {
             this.on('close', () => {
                 this.smallTimer.cleanup()
             })
-        }
+        },
     )
 }

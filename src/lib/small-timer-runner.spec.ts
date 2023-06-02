@@ -39,7 +39,7 @@ describe('lib/small-timer-runner', () => {
             type: '',
             name: '',
             z: '',
-            ...config
+            ...config,
         }
 
         const stubbedTimeCalc = {
@@ -81,13 +81,13 @@ describe('lib/small-timer-runner', () => {
         sinon.assert.calledWith(stubs.node.status, {
             fill: 'yellow',
             shape: 'dot',
-            text: 'No action today - off time is before on time'
+            text: 'No action today - off time is before on time',
         })
     })
 
     it('should handle temporary on and use timeout to calculate next change', () => {
         const stubs = setupTest({
-            onTimeout: 5
+            onTimeout: 5,
         })
 
         stubs.stubbedTimeCalc.getTimeToNextStartEvent.returns(20)
@@ -116,13 +116,13 @@ describe('lib/small-timer-runner', () => {
 
         sinon.assert.calledWith(
             stubs.status.lastCall,
-            { fill: 'red', shape: 'ring', text: 'Temporary OFF for 20mins' }
+            { fill: 'red', shape: 'ring', text: 'Temporary OFF for 20mins' },
         )
 
         runner.onMessage({ payload: 'auto', _msgid: 'some-id' })
         sinon.assert.calledWithExactly(
             stubs.status.lastCall,
-            { fill: 'green', shape: 'dot', text: 'ON for 30mins' }
+            { fill: 'green', shape: 'dot', text: 'ON for 30mins' },
         )
     })
 
@@ -131,7 +131,7 @@ describe('lib/small-timer-runner', () => {
             topic: 'test-topic',
             onMsg: 'on-msg',
             offMsg: '0',
-            injectOnStartup: true
+            injectOnStartup: true,
         })
 
         stubs.stubbedTimeCalc.getTimeToNextStartEvent.returns(0)
@@ -150,14 +150,14 @@ describe('lib/small-timer-runner', () => {
             temporaryManual: false,
             timeout: 0,
             payload: '0',
-            topic: 'test-topic'
+            topic: 'test-topic',
         })
         stubs.stubbedTimeCalc.getOnState.returns(true)
         sinon.clock.tick(60000)
 
         sinon.assert.calledWithExactly(
             stubs.status.lastCall,
-            { fill: 'green', shape: 'dot', text: 'ON for 02hrs 01mins' }
+            { fill: 'green', shape: 'dot', text: 'ON for 02hrs 01mins' },
         )
         sinon.assert.calledWithExactly(stubs.send.lastCall, {
             state: 'auto',
@@ -167,7 +167,7 @@ describe('lib/small-timer-runner', () => {
             temporaryManual: false,
             timeout: 0,
             payload: 'on-msg',
-            topic: 'test-topic'
+            topic: 'test-topic',
         })
     })
 
@@ -196,9 +196,9 @@ describe('lib/small-timer-runner', () => {
                 temporaryManual: false,
                 timeout: 0,
                 payload: 'off',
-                topic: 'test-topic'
+                topic: 'test-topic',
             },
-            { debug: 'this is debug', override: 'auto', topic: 'debug' }
+            { debug: 'this is debug', override: 'auto', topic: 'debug' },
         ])
 
     })
@@ -207,7 +207,7 @@ describe('lib/small-timer-runner', () => {
             topic: 'test-topic',
             onMsg: 'on-msg',
             offMsg: '0',
-            injectOnStartup: true
+            injectOnStartup: true,
         })
 
         stubs.stubbedTimeCalc.getTimeToNextStartEvent.returns(0)
@@ -227,7 +227,7 @@ describe('lib/small-timer-runner', () => {
             temporaryManual: false,
             timeout: 0,
             payload: '0',
-            topic: 'test-topic'
+            topic: 'test-topic',
         })
         stubs.stubbedTimeCalc.getOnState.returns(true)
         sinon.clock.tick(1200000)
@@ -242,7 +242,7 @@ describe('lib/small-timer-runner', () => {
                 topic: 'test-topic',
                 onMsg: 'on-msg',
                 offMsg: '0',
-                injectOnStartup: true
+                injectOnStartup: true,
             })
 
             stubs.stubbedTimeCalc.getTimeToNextStartEvent.returns(0)
@@ -261,14 +261,14 @@ describe('lib/small-timer-runner', () => {
                 temporaryManual: false,
                 timeout: 0,
                 payload: '0',
-                topic: 'test-topic'
+                topic: 'test-topic',
             })
 
             runner.onMessage({ payload: 'toggle', _msgid: 'some-msg' })
 
             sinon.assert.calledWithExactly(
                 stubs.status.lastCall,
-                { fill: 'green', shape: 'ring', text: 'Temporary ON for 20mins' }
+                { fill: 'green', shape: 'ring', text: 'Temporary ON for 20mins' },
             )
             sinon.assert.calledWithExactly(stubs.send.lastCall, {
                 state: 'tempOn',
@@ -278,14 +278,14 @@ describe('lib/small-timer-runner', () => {
                 temporaryManual: true,
                 timeout: 0,
                 payload: 'on-msg',
-                topic: 'test-topic'
+                topic: 'test-topic',
             })
 
             runner.onMessage({ payload: 'toggle', _msgid: 'some-msg' })
 
             sinon.assert.calledWithExactly(
                 stubs.status.lastCall,
-                { fill: 'red', shape: 'dot', text: 'OFF for 00mins 00secs' }
+                { fill: 'red', shape: 'dot', text: 'OFF for 00mins 00secs' },
             )
             sinon.assert.calledWithExactly(stubs.send.lastCall, {
                 state: 'auto',
@@ -295,7 +295,7 @@ describe('lib/small-timer-runner', () => {
                 temporaryManual: false,
                 timeout: 0,
                 payload: '0',
-                topic: 'test-topic'
+                topic: 'test-topic',
             })
 
 
@@ -306,7 +306,7 @@ describe('lib/small-timer-runner', () => {
                 topic: 'test-topic',
                 onMsg: 'on-msg',
                 offMsg: '0',
-                injectOnStartup: true
+                injectOnStartup: true,
             })
 
             stubs.stubbedTimeCalc.getTimeToNextStartEvent.returns(0)
@@ -325,7 +325,7 @@ describe('lib/small-timer-runner', () => {
                 temporaryManual: false,
                 timeout: 0,
                 payload: '0',
-                topic: 'test-topic'
+                topic: 'test-topic',
             })
 
             runner.onMessage({ payload: 'sync', _msgid: 'some-id' })
@@ -342,7 +342,7 @@ describe('lib/small-timer-runner', () => {
                 temporaryManual: false,
                 timeout: 0,
                 payload: '0',
-                topic: 'test-topic'
+                topic: 'test-topic',
             }])
         })
 
@@ -351,7 +351,7 @@ describe('lib/small-timer-runner', () => {
                 topic: 'test-topic',
                 onMsg: 'on-msg',
                 offMsg: '0',
-                injectOnStartup: false
+                injectOnStartup: false,
             })
 
             stubs.stubbedTimeCalc.getTimeToNextStartEvent.returns(0)
@@ -376,7 +376,7 @@ describe('lib/small-timer-runner', () => {
                 rules: [
                     { type: 'include', month: 0, day: 0 },
                     { type: 'exclude', month: 12, day: 101 }, // 101 is monday
-                ]
+                ],
             })
             stubs.stubbedTimeCalc.getTimeToNextStartEvent.returns(0)
             stubs.stubbedTimeCalc.getTimeToNextEndEvent.returns(20)
@@ -388,14 +388,14 @@ describe('lib/small-timer-runner', () => {
             runner.onMessage({ payload: 'sync', _msgid: '' })
             sinon.assert.calledWithExactly(
                 stubs.status.lastCall,
-                { fill: 'yellow', shape: 'dot', text: 'No action today' }
+                { fill: 'yellow', shape: 'dot', text: 'No action today' },
             )
 
             sinon.clock.setSystemTime(new Date('2023-12-05')) // December 4th 2023 is a tuesday
             runner.onMessage({ payload: 'sync', _msgid: '' })
             sinon.assert.calledWithExactly(
                 stubs.status.lastCall,
-                { fill: 'red', shape: 'dot', text: 'OFF for 00mins 00secs' }
+                { fill: 'red', shape: 'dot', text: 'OFF for 00mins 00secs' },
             )
 
         })
@@ -406,7 +406,7 @@ describe('lib/small-timer-runner', () => {
                     { type: 'include', month: 0, day: 0 },
                     { type: 'exclude', month: 5, day: 0 },
                     { type: 'include', month: 5, day: 11 },
-                ]
+                ],
             })
             stubs.stubbedTimeCalc.getTimeToNextStartEvent.returns(0)
             stubs.stubbedTimeCalc.getTimeToNextEndEvent.returns(20)
@@ -418,14 +418,14 @@ describe('lib/small-timer-runner', () => {
             runner.onMessage({ payload: 'sync', _msgid: '' })
             sinon.assert.calledWithExactly(
                 stubs.status.lastCall,
-                { fill: 'yellow', shape: 'dot', text: 'No action today' }
+                { fill: 'yellow', shape: 'dot', text: 'No action today' },
             )
 
             sinon.clock.setSystemTime(new Date('2023-05-11'))
             runner.onMessage({ payload: 'sync', _msgid: '' })
             sinon.assert.calledWithExactly(
                 stubs.status.lastCall,
-                { fill: 'red', shape: 'dot', text: 'OFF for 00mins 00secs' }
+                { fill: 'red', shape: 'dot', text: 'OFF for 00mins 00secs' },
             )
         })
     })

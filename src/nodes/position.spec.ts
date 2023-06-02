@@ -13,7 +13,7 @@ describe('node/position', () => {
 
     it('Should load configuration node', async () => {
         const flow: IPositionProperties[] = [
-            { id: 'n1', type: 'position', name: 'position', latitude: 10.0, longitude: 11.0, z: '' }
+            { id: 'n1', type: 'position', name: 'position', latitude: 10.0, longitude: 11.0, z: '' },
         ]
         await helper.load(position, flow)
         await new Promise((resolve, reject) => {

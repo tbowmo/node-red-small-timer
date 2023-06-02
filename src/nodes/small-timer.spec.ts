@@ -57,7 +57,7 @@ describe('node/small-timer', () => {
                 startTime: 0,
                 topic: '',
                 wrapMidnight: false,
-            } 
+            }, 
         ]
 
         await helper.load(smallTimer, flow)
@@ -88,7 +88,7 @@ describe('node/small-timer', () => {
                     startTime: 0,
                     topic: '',
                     wrapMidnight: false,
-                    _users: []                  
+                    _users: [],                  
                 })
                 resolve(1)
             } catch(err) {
@@ -123,7 +123,7 @@ describe('node/small-timer', () => {
                 startTime: 0,
                 topic: '',
                 wrapMidnight: false,
-            } 
+            }, 
         ]
 
         await helper.load(smallTimer, flow)
@@ -166,7 +166,7 @@ describe('node/small-timer', () => {
                 startTime: 0,
                 topic: '',
                 wrapMidnight: false,
-            } 
+            }, 
         ]
 
         await helper.load(smallTimer, flow)

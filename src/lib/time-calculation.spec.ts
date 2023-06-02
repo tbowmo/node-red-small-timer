@@ -9,7 +9,7 @@ describe('lib/time-calculation', () => {
     function setupTest() {
         const getMoonTimes = sinon.stub(sunCalc, 'getMoonTimes').returns({
             rise: new Date('2023-01-01 11:00'),
-            set: new Date('2023-01-01 12:00')
+            set: new Date('2023-01-01 12:00'),
         })
         const getTimes = sinon.stub(sunCalc, 'getTimes').returns({
             nightEnd: new Date('2023-01-01 04:00'),
@@ -41,7 +41,7 @@ describe('lib/time-calculation', () => {
             minutes - 120, // 09:00
             minutes + 120, // 12:00
             0,
-            0
+            0,
         )
 
         sinon.assert.calledWith(stubs.getTimes, currentTime, 10, 10)
@@ -66,7 +66,7 @@ describe('lib/time-calculation', () => {
             5005,
             5006,
             0,
-            0
+            0,
         )
 
         expect(timeCalc.getOnState()).to.equal(true)
@@ -86,7 +86,7 @@ describe('lib/time-calculation', () => {
             5005,
             5006,
             0,
-            0
+            0,
         )
 
         expect(timeCalc.getOnState()).to.equal(false)
@@ -112,7 +112,7 @@ describe('lib/time-calculation', () => {
         { startTime: 5006, endTime: 5007, wrap: false, expectedStart: 960, expectedEnd: 1380 },
         // moonset / dawn - :00 / :00
         { startTime: 5008, endTime: 5000, wrap: false, expectedStart: 0, expectedEnd: 1080 },
-        { startTime: 13 * 60, endTime: 10090, wrap: false, expectedStart: 60, expectedEnd: 150 }
+        { startTime: 13 * 60, endTime: 10090, wrap: false, expectedStart: 60, expectedEnd: 150 },
     ]
 
     testData.forEach((data) => {
@@ -126,7 +126,7 @@ describe('lib/time-calculation', () => {
                 data.startTime,
                 data.endTime,
                 0,
-                0
+                0,
             )
 
             expect(timeCalc.getTimeToNextStartEvent()).to.equal(data.expectedStart, 'startEvent')
@@ -150,7 +150,7 @@ describe('lib/time-calculation', () => {
             5007,
             5008,
             0,
-            0
+            0,
         )
 
         expect(timeCalc.getTimeToNextStartEvent()).to.equal(715, 'startEvent')
@@ -185,7 +185,7 @@ describe('lib/time-calculation', () => {
             5001,
             5002,
             0,
-            0
+            0,
         )
 
         expect(timeCalc.debug()).to.deep.equal({
@@ -201,7 +201,7 @@ describe('lib/time-calculation', () => {
                 nightEnd: 240,
                 solarNoon: 660,
                 sunrise: 300,
-                sunset: 1140
+                sunset: 1140,
             },
             nextEnd: 1320,
             nextStart: 480,
