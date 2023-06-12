@@ -20,7 +20,7 @@ export class TimeCalc {
     private moonTimes: SunCalc.GetMoonTimes | undefined = undefined
 
     private sunLookup: { [key: number]: MoonAndSun } = {
-        // legacy
+        // legacy -- fallback if node have old time values
         5000: 'dawn',
         5001: 'dusk',
         5002: 'solarNoon',
@@ -30,23 +30,24 @@ export class TimeCalc {
         5006: 'nightEnd',
         5007: 'rise',
         5008: 'set',
+
         // new
-        // 5101: 'sunrise',
-        // 5102: 'sunriseEnd',
-        // 5103: 'goldenHourEnd',
-        // 5104: 'solarNoon',
-        // 5105: 'goldenHour',
-        // 5106: 'sunsetStart',
-        // 5107: 'sunset',
-        // 5108: 'dusk',
-        // 5109: 'nauticalDusk',
-        // 5110: 'night',
-        // 5111: 'nadir',
-        // 5112: 'nightEnd',
-        // 5113: 'nauticalDawn',
-        // 5114: 'dawn',
-        // 5115: 'rise', // moon
-        // 5116: 'set', // moon
+        5101: 'sunrise',
+        5102: 'sunriseEnd',
+        5103: 'goldenHourEnd',
+        5104: 'solarNoon',
+        5105: 'goldenHour',
+        5106: 'sunsetStart',
+        5107: 'sunset',
+        5108: 'dusk',
+        5109: 'nauticalDusk',
+        5110: 'night',
+        5111: 'nadir',
+        5112: 'nightEnd',
+        5113: 'nauticalDawn',
+        5114: 'dawn',
+        5115: 'rise', // moon
+        5116: 'set', // moon
     }
 
     private lastSunCalcUpdate = -1

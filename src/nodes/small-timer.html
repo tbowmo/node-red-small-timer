@@ -385,7 +385,7 @@
                 generateTimes('#node-input-endTime', true)
 
                 rulesContainer()
-
+                
                 this.rules.forEach((rule, i) => {
                     $("#node-input-rules-container").editableList('addItem', { r: rule, i: i });
                 })
@@ -400,13 +400,37 @@
                 rules.each(function (i) {
                     node.rules.push(exportRule($(this)));
                 });
+
                 $('#node-input-startTime').val($('#node-input-startTime-select').val());
                 $('#node-input-endTime').val($('#node-input-endTime-select').val());
             }
         })
 
+        const conversionTable = {
+            '5000': '5114',
+            '5001': '5108',
+            '5002': '5104',
+            '5003': '5101',
+            '5004': '5107',
+            '5005': '5110',
+            '5006': '5112',
+            '5007': '5115',
+            '5008': '5116',
+        }
+
+        // Convert legacy special timestamps to new ones
+        function convertTimes(selectId) {
+            const currentVal = $(selectId).val()
+            const newValue = conversionTable[currentVal]
+
+            if (newValue !== undefined) {
+                $(selectId).val(newValue)
+            }
+        }
+        
         function generateTimes(selectId, endTime = false) {
             $(selectId).hide()
+            convertTimes(selectId)
             let html = ''
             const pad = (n) => `00${n.toFixed(0)}`.substr(-2)
             for (let time = 0; time < 1439; time += 15) {
@@ -416,16 +440,23 @@
             }
 
             html = html + `
-        <option value="1439">Day End</option>
-        <option value="5000">Dawn</option>
-        <option value="5001">Dusk</option>
-        <option value="5002">Solarnoon</option>
-        <option value="5003">Sunrise</option>
-        <option value="5004">Sunset</option>
-        <option value="5005">Night</option>
-        <option value="5006">Night end</option>
-        <option value="5007">Moonrise</option>
-        <option value="5008">Moonset</option>
+            <option value="1439">Day end</option>
+            <option value="5101">Sunrise</option>
+            <option value="5102">Sunrise end</option>
+            <option value="5103">Morning golden hour end</option>
+            <option value="5104">Solar noon</option>
+            <option value="5105">Evening golden hour start</option>
+            <option value="5106">Sunset start</option>
+            <option value="5107">Sunset</option>
+            <option value="5108">Dusk</option>
+            <option value="5109">Nautical dusk</option>
+            <option value="5110">Night</option>
+            <option value="5111">Nadir</option>
+            <option value="5112">Night end</option>
+            <option value="5113">Nautical dawn</option>
+            <option value="5114">Dawn</option>
+            <option value="5115">Moonrise</option>
+            <option value="5116">Moonset</option>
         `
             if (endTime) {
                 html = html + `
