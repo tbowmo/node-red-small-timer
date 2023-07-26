@@ -77,13 +77,15 @@ describe('lib/small-timer-runner', () => {
         stubs.stubbedTimeCalc.getTimeToNextEndEvent.returns(20)
         stubs.stubbedTimeCalc.operationToday.returns('noMidnightWrap')
 
-        new SmallTimerRunner(stubs.position, stubs.configuration, stubs.node)
+        const runner = new SmallTimerRunner(stubs.position, stubs.configuration, stubs.node)
 
         sinon.assert.calledWith(stubs.node.status, {
             fill: 'yellow',
             shape: 'dot',
             text: 'No action today - off time is before on time',
         })
+
+        runner.onMessage({payload: 'sync', _msgid: ''})
     })
 
     it('should handle no action today, due to minimum on time not met', () => {
@@ -92,13 +94,14 @@ describe('lib/small-timer-runner', () => {
         stubs.stubbedTimeCalc.getTimeToNextEndEvent.returns(20)
         stubs.stubbedTimeCalc.operationToday.returns('minimumOnTimeNotMet')
 
-        new SmallTimerRunner(stubs.position, stubs.configuration, stubs.node)
+        const runner = new SmallTimerRunner(stubs.position, stubs.configuration, stubs.node)
 
         sinon.assert.calledWith(stubs.node.status, {
             fill: 'yellow',
             shape: 'dot',
             text: 'No action today - minimum on time not met',
         })
+        runner.onMessage({payload: 'sync', _msgid: ''})
     })
 
     it('should handle temporary on and use timeout to calculate next change', () => {
@@ -154,7 +157,7 @@ describe('lib/small-timer-runner', () => {
         stubs.stubbedTimeCalc.getTimeToNextEndEvent.returns(120.6)
         stubs.stubbedTimeCalc.getOnState.returns(false)
 
-        new SmallTimerRunner(stubs.position, stubs.configuration, stubs.node)
+        const runner = new SmallTimerRunner(stubs.position, stubs.configuration, stubs.node)
         sinon.clock.tick(60000)
 
         sinon.assert.calledWithExactly(stubs.status, { fill: 'red', shape: 'dot', text: 'OFF for 00mins 00secs' })
@@ -185,6 +188,8 @@ describe('lib/small-timer-runner', () => {
             payload: 'on-msg',
             topic: 'test-topic',
         })
+
+        runner.onMessage({payload: 'sync', _msgid: ''})
     })
 
     it('should send update together with an debug message when debug is enabled', () => {
@@ -200,7 +205,7 @@ describe('lib/small-timer-runner', () => {
         stubs.stubbedTimeCalc.getTimeToNextEndEvent.returns(120.6)
         stubs.stubbedTimeCalc.getOnState.returns(false)
 
-        new SmallTimerRunner(stubs.position, stubs.configuration, stubs.node)
+        const runner = new SmallTimerRunner(stubs.position, stubs.configuration, stubs.node)
 
         sinon.clock.tick(2000)
         sinon.assert.calledWith(stubs.send, [
@@ -216,8 +221,9 @@ describe('lib/small-timer-runner', () => {
             },
             { debug: 'this is debug', override: 'auto', topic: 'debug' },
         ])
-
+        runner.onMessage({payload: 'sync', _msgid: ''})
     })
+
     it('should stop timer, and not advance anything after cleanup has been called', async () => {
         const stubs = setupTest({
             topic: 'test-topic',
@@ -313,8 +319,6 @@ describe('lib/small-timer-runner', () => {
                 payload: '0',
                 topic: 'test-topic',
             })
-
-
         })
 
         it('should output node status when sync message is received, without changing properties', () => {
