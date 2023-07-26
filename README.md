@@ -39,6 +39,9 @@ This is when the magic happens. Set it to the desired on time and off time using
 ## Override timeout
 Used when triggering an override of the current state, after set time the node will switch back to whatever the output state should be at the given time, if it was in auto mode. This value is split into an on and off timeout. This means that you could have an 5 minutes on timeout (for turning on lights momentarily) while keeping off at default timeout which is 24 hours (or until next state change)
 
+## Minimum on time
+This can be used to set an minimum required on time, if the calculated ontime is below this value it is ignored. For example you might not be interested to turn on the light for only 5 minutes, when you are using sunset to turn on lights in the evening. Then you can set this property to the minimum required on time
+
 ## Topic
 Topic parameter of the msg that is sent out on events. This can be used to send on to mqtt for example.
 
