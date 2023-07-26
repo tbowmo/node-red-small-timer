@@ -132,7 +132,7 @@ The debug output will contain the following data
     nextStart: number,
     nextEnd: number,
     onState: boolean,
-    noOnStateToday: boolean,
+    operationToday: 'normal' | 'noMidnightWrap' | 'minimumOnTimeNotMet',
 }
 ```
 All the above numbers will be number of minutes since midnight on the day the event happens, except nextStart and nextEnd, which will be the number of minutes until the next event.
