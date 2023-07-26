@@ -136,6 +136,10 @@
         </div>
     </div>
     <div class="form-row">
+        <label for="node-input-minimumOnTime">Minimum on time</label>
+        <input style="width:80px" type="text" id="node-input-minimumOnTime" placeholder="0">
+    </div>
+    <div class="form-row">
         <label for="node-input-name"><i class="fa fa-tasks"></i> Topic</label>
         <input type="text" id="node-input-topic" placeholder="Topic">
     </div>
@@ -336,6 +340,7 @@
                 onMsg: { value: '1' },
                 onMsgType: { value: 'str' },
                 onTimeout: { value: 1440, required: true },
+                minimumOnTime: { value: 0, required: true},
 
                 offMsg: { value: '0' },
                 offMsgType: { value: 'str' },

@@ -42,6 +42,7 @@ describe('lib/time-calculation', () => {
             minutes + 120, // 12:00
             0,
             0,
+            0,
         )
 
         sinon.assert.calledWith(stubs.getTimes, currentTime, 10, 10)
@@ -67,15 +68,16 @@ describe('lib/time-calculation', () => {
             5006,
             0,
             0,
+            0,
         )
 
         expect(timeCalc.getOnState()).to.equal(true)
         expect(timeCalc.getTimeToNextEndEvent()).to.equal(180)
         expect(timeCalc.getTimeToNextStartEvent()).to.equal(22 * 60)
-        expect(timeCalc.noOnStateToday()).to.equal(false)
+        expect(timeCalc.operationToday()).to.equal('normal')
     })
 
-    it('should not signal on, if off time is before on time', () => {
+    it('should indicate that on time wraps midnight, if off time is before on time', () => {
         setupTest()
         const currentTime = new Date('2023-01-01 01:00')
         sinon.clock.setSystemTime(currentTime)
@@ -87,12 +89,34 @@ describe('lib/time-calculation', () => {
             5006,
             0,
             0,
+            0,
         )
 
         expect(timeCalc.getOnState()).to.equal(false)
         expect(timeCalc.getTimeToNextEndEvent()).to.equal(180)
         expect(timeCalc.getTimeToNextStartEvent()).to.equal(22 * 60)
-        expect(timeCalc.noOnStateToday()).to.equal(true)
+        expect(timeCalc.operationToday()).to.equal('noMidnightWrap')
+    })
+
+    it('should indicate that on time is lower than minimum on time', () => {
+        setupTest()
+        const currentTime = new Date('2023-01-01 01:00')
+        sinon.clock.setSystemTime(currentTime)
+        const timeCalc = new TimeCalc(
+            10,
+            10,
+            false,
+            45,
+            75,
+            0,
+            0,
+            60,
+        )
+
+        expect(timeCalc.getOnState()).to.equal(false)
+        expect(timeCalc.getTimeToNextEndEvent()).to.equal(15)
+        expect(timeCalc.getTimeToNextStartEvent()).to.equal(1425)
+        expect(timeCalc.operationToday()).to.equal('minimumOnTimeNotMet')
     })
 
     const testData: {
@@ -127,6 +151,7 @@ describe('lib/time-calculation', () => {
                 data.endTime,
                 0,
                 0,
+                0,
             )
 
             expect(timeCalc.getTimeToNextStartEvent()).to.equal(data.expectedStart, 'startEvent')
@@ -140,7 +165,7 @@ describe('lib/time-calculation', () => {
         stubs.getMoonTimes.returns({
             rise: false,
             set: false,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any)
 
         const timeCalc = new TimeCalc(
@@ -149,6 +174,7 @@ describe('lib/time-calculation', () => {
             false,
             5007,
             5008,
+            0,
             0,
             0,
         )
@@ -169,6 +195,7 @@ describe('lib/time-calculation', () => {
             5001,
             0,
             0,
+            0,
         )
 
         expect(timeCalc.setStartEndTime.bind(timeCalc, 6001, 6002))
@@ -184,6 +211,7 @@ describe('lib/time-calculation', () => {
             true,
             5001,
             5002,
+            0,
             0,
             0,
         )
@@ -205,7 +233,7 @@ describe('lib/time-calculation', () => {
             },
             nextEnd: 1320,
             nextStart: 480,
-            noOnStateToday: false,
+            operationToday: 'normal',
 
             actualEnd: 660,
             actualStart: 1260,

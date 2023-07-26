@@ -1,4 +1,4 @@
-/*eslint complexity: ["error", 12]*/
+/*eslint complexity: ["error", 13]*/
 import {
     Node,
     NodeMessage,
@@ -41,7 +41,6 @@ export class SmallTimerRunner {
     private repeat: boolean
     private onTimeout: number
     private offTimeout: number
-    // private currentTimeout = 0
 
     private timeCalc: TimeCalc
     private debugMode = false
@@ -61,6 +60,7 @@ export class SmallTimerRunner {
             Number(configuration.endTime),
             Number(configuration.startOffset),
             Number(configuration.endOffset),
+            Number(configuration.minimumOnTime),
         )
 
         this.topic = configuration.topic
@@ -205,7 +205,7 @@ export class SmallTimerRunner {
         if (minutes >= 2 || hour) {
             str.push(`${pad(minutes)}mins`)
         }
-        if (minutes<2 && !hour) {
+        if (minutes < 2 && !hour) {
             str.push(`${pad(Math.floor(minutes))}mins`)
             str.push(`${pad(seconds)}secs`)
         }
@@ -219,14 +219,18 @@ export class SmallTimerRunner {
         let fill: NodeStatusFill = 'yellow'
         const text: string[] = []
 
-        const activeToday = !this.timeCalc.noOnStateToday() && (this.isDayOk() || this.currentState)
+        const activeToday = this.timeCalc.operationToday() === 'normal' && (this.isDayOk() || this.currentState)
 
         if (!activeToday) {
             text.push('No action today')
         }
 
-        if (this.timeCalc.noOnStateToday()) {
+        switch (this.timeCalc.operationToday()) {
+        case 'noMidnightWrap':
             text.push('off time is before on time')
+            break
+        case 'minimumOnTimeNotMet':
+            text.push('minimum on time not met')
         }
 
         if (activeToday || this.override !== 'auto') {

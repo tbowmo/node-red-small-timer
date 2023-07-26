@@ -69,6 +69,7 @@ export class TimeCalc {
         private endTime: number,
         private startOffset: number,
         private endOffset: number,
+        private minimumOnTime: number,
     ) {
         this.eventCalculation()
     }
@@ -106,7 +107,7 @@ export class TimeCalc {
             nextStart: this.getTimeToNextStartEvent(),
             nextEnd: this.getTimeToNextEndEvent(),
             onState: this.getOnState(),
-            noOnStateToday: this.noOnStateToday(),
+            operationToday: this.operationToday(),
         }
     }
 
@@ -159,6 +160,16 @@ export class TimeCalc {
         return nextEvent >= 0 ? nextEvent : (nextEvent + wholeDay)
     }
 
+    private onTime(): number {
+        const onTime = this.actualEnd - this.actualStart
+
+        if (this.wrapMidnight && onTime < 0) {
+            return onTime + wholeDay
+        }
+
+        return onTime 
+    }
+
     /**
      * Returns the actual on state, according to the current time
      *
@@ -169,7 +180,11 @@ export class TimeCalc {
         const currentTime = this.getTime(date)
 
         this.eventCalculation(false, date)
-
+    
+        if (this.onTime() < this.minimumOnTime) {
+            return false
+        }
+    
         if (this.actualEnd < this.actualStart) {
             return this.wrapMidnight && ((currentTime < this.actualEnd) || (currentTime > this.actualStart))
         }
@@ -177,12 +192,18 @@ export class TimeCalc {
     }
 
     /**
-     * Check if we will have an on event today,
-     * returns false if wrapMidnight is false, and actualEnd is before actualStart
+     * Check how the operational status is today,
+     * returns 'normal' in case of normal operation or 'noMinomumOnTime' / 'noMidnightWrap' if we do not turn on today
      * @returns
      */
-    public noOnStateToday(): boolean {
-        return !this.wrapMidnight && (this.actualEnd < this.actualStart)
+    public operationToday(): 'normal' | 'minimumOnTimeNotMet' | 'noMidnightWrap' {
+        const onTime = this.onTime()
+
+        if (onTime >= 0 && onTime < this.minimumOnTime) {
+            return 'minimumOnTimeNotMet'
+        }
+
+        return !this.wrapMidnight && (this.actualEnd < this.actualStart) ? 'noMidnightWrap' : 'normal'
     }
 
     private eventCalculation(forceUpdate = false, now = new Date()) {

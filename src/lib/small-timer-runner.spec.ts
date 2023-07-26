@@ -35,6 +35,7 @@ describe('lib/small-timer-runner', () => {
             onMsgType: 'str',
             wrapMidnight: false,
             debugEnable: false,
+            minimumOnTime: 0,
             id: '',
             type: '',
             name: '',
@@ -46,7 +47,7 @@ describe('lib/small-timer-runner', () => {
             getTimeToNextStartEvent: sinon.stub(),
             getTimeToNextEndEvent: sinon.stub(),
             getOnState: sinon.stub().returns(false),
-            noOnStateToday: sinon.stub().returns(false),
+            operationToday: sinon.stub().returns('normal'),
             debug: sinon.stub().returns({debug: 'this is debug'}),
         }
 
@@ -74,7 +75,7 @@ describe('lib/small-timer-runner', () => {
         const stubs = setupTest()
         stubs.stubbedTimeCalc.getTimeToNextStartEvent.returns(10)
         stubs.stubbedTimeCalc.getTimeToNextEndEvent.returns(20)
-        stubs.stubbedTimeCalc.noOnStateToday.returns(true)
+        stubs.stubbedTimeCalc.operationToday.returns('noMidnightWrap')
 
         new SmallTimerRunner(stubs.position, stubs.configuration, stubs.node)
 
@@ -82,6 +83,21 @@ describe('lib/small-timer-runner', () => {
             fill: 'yellow',
             shape: 'dot',
             text: 'No action today - off time is before on time',
+        })
+    })
+
+    it('should handle no action today, due to minimum on time not met', () => {
+        const stubs = setupTest()
+        stubs.stubbedTimeCalc.getTimeToNextStartEvent.returns(10)
+        stubs.stubbedTimeCalc.getTimeToNextEndEvent.returns(20)
+        stubs.stubbedTimeCalc.operationToday.returns('minimumOnTimeNotMet')
+
+        new SmallTimerRunner(stubs.position, stubs.configuration, stubs.node)
+
+        sinon.assert.calledWith(stubs.node.status, {
+            fill: 'yellow',
+            shape: 'dot',
+            text: 'No action today - minimum on time not met',
         })
     })
 
