@@ -33,13 +33,19 @@ The **repeat** and **inject on startup** checkboxes configures the node to eithe
 
 **Debug enable** this will add an extra output to the node providing debug information, like the different sunrise/sunset etc. times (see [debug section below](#debug))
 
-## On / Off time
-This is when the magic happens. Set it to the desired on time and off time using the dropdowns. You can also set an offset (positive or negative), which will add (or subtract) the specified number of minutes to the calculated time, so you can set the light to turn on 30 minutes _after_ sunset, as an example
+## On and Off time
+Configure the on and off events
 
-## Override timeout
+### Time of day
+Set this propperty to the desired on / off time for the day. Can be a specific time, or use a dynamic time such as _sunrise_, _sunset_ etc.
+
+### Offset
+In case of using a dynamic time, this can be used to add an offset to the calculated time. Use it for example to turn the light on 30 minutes before sunrise.
+
+### Override timeout
 Used when triggering an override of the current state, after set time the node will switch back to whatever the output state should be at the given time, if it was in auto mode. This value is split into an on and off timeout. This means that you could have an 5 minutes on timeout (for turning on lights momentarily) while keeping off at default timeout which is 24 hours (or until next state change)
 
-## Minimum on time
+### Minimum time
 This can be used to set an minimum required on time, if the calculated ontime is below this value it is ignored. For example you might not be interested to turn on the light for only 5 minutes, when you are using sunset to turn on lights in the evening. Then you can set this property to the minimum required on time
 
 ## Topic

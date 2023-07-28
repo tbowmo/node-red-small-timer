@@ -94,7 +94,7 @@
         <input type="text" id="node-input-position" placeholder="Position">
     </div>
     <div class="form-row">
-        <label><i class="fa fa-cog"></i> Options</label>
+        <label style="vertical-align: top;"><i class="fa fa-cog"></i> Options</label>
         <div style="display:inline-block;" class="small-timer-options">
             <div>
                 <label><input type="checkbox" id="node-input-repeat"> Repeat</label>
@@ -108,36 +108,43 @@
     </div>
 
     <div class="form-tips">
-        <b>Tip</b> Specify offset as a positive or negative number of minutes (120 for 2 hours)
+        <b>Tip</b> <em>Offset</em>, <em>override timeout</em> and <em>minimum time</em> are specified in number of minutes.<br />
+        <em>Offset</em> can be both a positive and negative number, while <em>override timeout</em> and <em>minimum time</em> must be positive numbers
     </div>
-    <div class="form-row">
-        <label for="node-input-startTime"><i class="fa fa-clock-o"></i> On time</label>
-        <input type="text" id="node-input-startTime" class="hidden">
-        <select style="width:100px" id="node-input-startTime-select">
-        </select>
-        <span for="node-input-startOffset" style="margin-left:20px">Offset</span>
-        <input  style="width:80px" type="text" id="node-input-startOffset" placeholder="0">
-    </div>
-    <div class="form-row">
-        <label  for="node-input-endTime"><i class="fa fa-clock-o"></i> Off time</label>
-        <input type="text" id="node-input-endTime">
-        <select style="width:100px" id="node-input-endTime-select">
-        </select>
-        <span for="node-input-end Offset" style="margin-left:20px">Offset</span>
-        <input  style="width:80px" type="text" id="node-input-endOffset" placeholder="0">
-    </div>
-    <div class="form-row">
-        <label>Override timeout</label>
-        <div style="display:inline-block" class="small-timer-overrides">
-            <label for="node-input-onTimeout"> On</label>
-            <input type="text" id="node-input-onTimeout" placeholder="1440">
-            <label for="node-input-offTimeout"> Off</label>
-            <input type="text" id="node-input-offTimeout" placeholder="1440">
+    <div class="form-row" style="margin-bottom: 0;">
+        <label></label>
+        <div style="display:inline-block;">
+            <div class="small-timer-timers small-timer-timers-header">
+                <div class="small-timer-time-column">Time of day</div>
+                <div>Offset</div>
+                <div>Override timeout</div>
+                <div>Minimum time</div>
+            </div>
         </div>
     </div>
     <div class="form-row">
-        <label for="node-input-minimumOnTime">Minimum on time</label>
-        <input style="width:80px" type="text" id="node-input-minimumOnTime" placeholder="0">
+        <label for="node-input-startTime"><i class="fa fa-clock-o"></i> On time</label>
+        <div style="display:inline-block;">
+            <div class="small-timer-timers">
+                <input type="hidden" id="node-input-startTime" class="hidden">
+                <select id="node-input-startTime-select"></select>
+                <input type="text" id="node-input-startOffset" placeholder="0">
+                <input type="text" id="node-input-onTimeout" placeholder="1440">
+                <input type="text" id="node-input-minimumOnTime" placeholder="0">
+            </div>
+        </div>
+    </div>
+    <div class="form-row">
+        <label  for="node-input-endTime"><i class="fa fa-clock-o"></i> Off time</label>
+        <div style="display:inline-block;">
+            <div class="small-timer-timers">
+                <input type="hidden" id="node-input-endTime" class="hidden">
+                <select id="node-input-endTime-select"></select>
+                <input type="text" id="node-input-endOffset" placeholder="0">
+                <input type="text" id="node-input-offTimeout" placeholder="1440">
+                <div style="width: 59px; flex-shrink: 0;"></div>
+            </div>
+        </div>
     </div>
     <div class="form-row">
         <label for="node-input-name"><i class="fa fa-tasks"></i> Topic</label>
@@ -163,15 +170,30 @@
     <input id="node-input-outputs" type="hidden" value="1">
 </script>
 <style>
-    .small-timer-overrides label {
-        width: 40px !important;
+    .small-timer-timers {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-around;
+        width: 327px;
+        gap: 10px;
+    }
+    .small-timer-timers-header {
+        align-items: flex-end;
+    }
+    .small-timer-timers-header div:not(:first-of-type) {
+        width: 100%;
     }
 
-    .small-timer-overrides input {
-        width: 80px !important;
-        margin-right: 8px;
+    .small-timer-time-column {
+        width: 120px;
+        flex-shrink: 0;
     }
-
+    .small-timer-timers input {
+        width: 100% !important;
+    }
+    .small-timer-timers select {
+        width: 120px !important;
+    }
     .small-timer-options label {
         -webkit-user-select: none;
         -khtml-user-select: none;
@@ -240,6 +262,15 @@
             var month = monthDay?.find(".monthSelect").val();
             var day = monthDay?.find(".daySelect").val();
             return { type, month, day };
+        }
+
+        function offsetEnable(value, field) {
+            if(Number(value) < 2000 || Number(value) >= 10000) {
+                $(field).prop('disabled', true);
+                $(field).val(0)
+            } else {
+                $(field).prop('disabled', false);
+            }
         }
 
         function rulesContainer() {
@@ -321,6 +352,11 @@
             });
 
         }
+        
+        function validatePositiveNumber(n) {
+            var num = Number(n || 0)
+            return !isNaN(num) && num >= 0
+        }
 
         RED.nodes.registerType('smalltimer', {
             category: 'advanced-input',
@@ -332,19 +368,19 @@
                 position: { value: "", type: "position" },
                 startTime: { value: 5001, required: true },
                 endTime: { value: 1425, required: true },
-                startOffset: { value: 0, required: true },
-                endOffset: { value: 0, required: true },
+                startOffset: { value: 0, required: true, validate: (v) => !isNaN(v || 0) },
+                endOffset: { value: 0, required: true, validate: (v) => !isNaN(v || 0) },
 
                 topic: { value: '' },
 
                 onMsg: { value: '1' },
                 onMsgType: { value: 'str' },
-                onTimeout: { value: 1440, required: true },
-                minimumOnTime: { value: 0, required: true},
+                onTimeout: { value: 1440, required: true, validate: validatePositiveNumber },
+                minimumOnTime: { value: 0, required: true, validate: validatePositiveNumber},
 
                 offMsg: { value: '0' },
                 offMsgType: { value: 'str' },
-                offTimeout: { value: 1440, required: true },
+                offTimeout: { value: 1440, required: true, validate: validatePositiveNumber},
 
                 rules: { value: [{ type: 'include', month: 0, day: 0 }] },
 
@@ -388,6 +424,17 @@
 
                 generateTimes('#node-input-startTime', false)
                 generateTimes('#node-input-endTime', true)
+
+                offsetEnable($('#node-input-startTime').val(), '#node-input-startOffset')
+                offsetEnable($('#node-input-endTime').val(), '#node-input-endOffset')
+                
+                $('#node-input-startTime-select').on('change', function () {
+                    offsetEnable(this.value, '#node-input-startOffset')
+                })
+
+                $('#node-input-endTime-select').on('change', function () {
+                    offsetEnable(this.value, '#node-input-endOffset')
+                })
 
                 rulesContainer()
                 
