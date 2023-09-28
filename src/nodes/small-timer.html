@@ -248,7 +248,10 @@
             { value: 106, label: 'Saturday' },
         ]
 
-        let dayNumbers = Array.apply(null, { length: 31 }).map(Number.call, Number).map((item) => ({ label: item + 1, value: item + 1 }));
+        let dayNumbers = Array
+            .apply(null, { length: 31 })
+            .map(Number.call, Number)
+            .map((item) => ({ label: item + 1, value: item + 1 }));
         dayNumbers.unshift({ label: 'All', value: 0 });
 
         dayNumbers = [

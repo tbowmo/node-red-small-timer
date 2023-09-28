@@ -311,7 +311,7 @@ export class SmallTimerRunner {
 
         const timeout = incomingMsg.timeout !== undefined ? Number(incomingMsg.timeout) : undefined
         if (timeout !== undefined && isNaN(timeout)) {        
-            throw new Error(`timeout value "${incomingMsg.timeout}" can not be converted to a number`)
+            throw new Error(`Timeout value "${incomingMsg.timeout}" can not be converted to a number`)
         }
 
         switch (payload) {

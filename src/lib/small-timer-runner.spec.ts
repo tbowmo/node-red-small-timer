@@ -265,6 +265,7 @@ describe('lib/small-timer-runner', () => {
                 onMsg: 'on-msg',
                 offMsg: '0',
                 injectOnStartup: true,
+                onTimeout: 30,
             })
 
             stubs.stubbedTimeCalc.getTimeToNextStartEvent.returns(0)
@@ -288,6 +289,7 @@ describe('lib/small-timer-runner', () => {
 
             runner.onMessage({ payload: 'toggle', _msgid: 'some-msg' })
 
+            sinon.assert.calledWith(stubs.stubbedTimer.start, 30)
             sinon.assert.calledWithExactly(
                 stubs.status.lastCall,
                 { fill: 'green', shape: 'ring', text: 'Temporary ON for 20mins' },
@@ -364,6 +366,62 @@ describe('lib/small-timer-runner', () => {
                 payload: '0',
                 topic: 'test-topic',
             }])
+        })
+
+        it('should use timeout property to override timeout', () => {
+            const stubs = setupTest({
+                topic: 'test-topic',
+                onMsg: 'on-msg',
+                offMsg: '0',
+                injectOnStartup: true,
+            })
+
+            stubs.stubbedTimeCalc.getTimeToNextStartEvent.returns(0)
+            stubs.stubbedTimeCalc.getTimeToNextEndEvent.returns(20)
+            stubs.stubbedTimeCalc.getOnState.returns(false)
+
+            const runner = new SmallTimerRunner(stubs.position, stubs.configuration, stubs.node)
+            sinon.clock.tick(80000)
+
+            sinon.assert.calledWithExactly(stubs.status, { fill: 'red', shape: 'dot', text: 'OFF for 00mins 00secs' })
+            sinon.assert.calledWithExactly(stubs.send, {
+                state: 'auto',
+                stamp: 2000,
+                autoState: true,
+                duration: 0,
+                temporaryManual: false,
+                timeout: 0,
+                payload: '0',
+                topic: 'test-topic',
+            })
+
+            runner.onMessage({ payload: 'toggle', timeout: 10, _msgid: 'some-msg' })
+
+            sinon.assert.calledWith(stubs.stubbedTimer.start, 10)
+        })
+
+        it('should throw error if timeout property cannot be converted to number', () => {
+            const stubs = setupTest({
+                topic: 'test-topic',
+                onMsg: 'on-msg',
+                offMsg: '0',
+                injectOnStartup: false,
+            })
+
+            stubs.stubbedTimeCalc.getTimeToNextStartEvent.returns(0)
+            stubs.stubbedTimeCalc.getTimeToNextEndEvent.returns(20)
+            stubs.stubbedTimeCalc.getOnState.returns(false)
+
+            const runner = new SmallTimerRunner(stubs.position, stubs.configuration, stubs.node)
+            sinon.clock.tick(80000)
+
+            sinon.assert.calledWithExactly(stubs.status, { fill: 'red', shape: 'dot', text: 'OFF for 00mins 00secs' })
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            expect(runner.onMessage.bind(runner.onMessage, { payload: 'invalid', timeout: 'notANumber', _msgid: 'some-id' } as any))
+                .to.throw('Timeout value "notANumber" can not be converted to a number')
+
+            expect(stubs.send.callCount).to.equal(0)  
         })
 
         it('should signal error if invalid message is received', () => {
