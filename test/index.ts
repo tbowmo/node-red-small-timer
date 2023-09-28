@@ -1,8 +1,7 @@
 import { createSandbox } from 'sinon'
-import type { InstalledClock } from '@sinonjs/fake-timers'
 import * as fakeTimers from '@sinonjs/fake-timers'
 
-const clock: InstalledClock = fakeTimers.install()
+const clock: fakeTimers.Clock = fakeTimers.install()
 
 export const useSinonSandbox = () => {
     const sandbox = createSandbox()
@@ -16,7 +15,7 @@ export const useSinonSandbox = () => {
         ...sandbox,
         get clock() {
             return clock
-        }
+        },
     }
 }
 

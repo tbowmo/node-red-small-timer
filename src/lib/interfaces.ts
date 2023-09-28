@@ -1,7 +1,8 @@
 import { NodeMessage, NodeMessageInFlow } from 'node-red'
 
 export interface ISmallTimerMessage extends NodeMessageInFlow {
-    reset?: boolean
+    reset?: boolean,
+    timeout?: number,
 }
 
 export type SmallTimerChangeMessage = NodeMessage & {

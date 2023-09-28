@@ -113,6 +113,12 @@ Sending the auto (or default) to small timer, will cause it to return to automod
 
 **NOTE!** if the input payload property contains non decodable properties / strings, the input will be ignored, and an error will be emitted to Node-Red
 
+## Optional properties on input message
+| property |   type  |description |
+|----------|---------|------------|
+| reset    | boolean |If this property resolves to a truthy value, the node will be reset to auto mode
+| timeout  | number  |This can be used to override the timeout set in the configuration, and applies to the current on or off command. If left out / undefined, the configured timeout will be used
+
 # Debug
 
 When debug is enabled, the node will have a secondary output, which emits data from the suncalc calculations for sunrise/sunset etc. This data will be emitted at the same time as the main output is emitted (at changes, or when sync is sent to the input)

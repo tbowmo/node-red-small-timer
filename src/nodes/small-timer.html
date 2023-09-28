@@ -33,6 +33,10 @@
                     <li>sync</li>
                 </ul>
             </dd>
+            <dt class="optional">timeout <span class="property-type">number</span></dt>
+            <dd>Optional value that defines the timeout for the on / off event specified in payload. If undefined, the configured values for on/off timeout will be used</dd>
+            <dt class="optional">reset <span class="property-type">boolean</span></dt>
+            <dd>if truthy the node will reset to auto mode</dd>
         </dl>
     <p>
         NOTE! if input contains non decodable properties / strings, the input will be ignored, and an error will be emitted to Node-Red
@@ -244,7 +248,10 @@
             { value: 106, label: 'Saturday' },
         ]
 
-        let dayNumbers = Array.apply(null, { length: 31 }).map(Number.call, Number).map((item) => ({ label: item + 1, value: item + 1 }));
+        let dayNumbers = Array
+            .apply(null, { length: 31 })
+            .map(Number.call, Number)
+            .map((item) => ({ label: item + 1, value: item + 1 }));
         dayNumbers.unshift({ label: 'All', value: 0 });
 
         dayNumbers = [

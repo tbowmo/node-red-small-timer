@@ -74,6 +74,7 @@ export class SmallTimerRunner {
 
         this.onTimeout = Number(configuration.onTimeout)
         this.offTimeout = Number(configuration.offTimeout)
+
         if (configuration.injectOnStartup) {
             this.startupTock = setTimeout(this.forceSend.bind(this), 2000)
         } else {
@@ -268,7 +269,7 @@ export class SmallTimerRunner {
         this.node.status(status)
     }
 
-    private doOverride(override: Override): void {
+    private doOverride(override: Override, timeout?: number): void {
         this.override = override
         if (override === 'auto') {
             this.timer.stop()
@@ -283,11 +284,11 @@ export class SmallTimerRunner {
             return
         }
 
-        const timeout = override === 'tempOn'
-            ? this.onTimeout
-            : this.offTimeout
+        const timerTimeout = override === 'tempOn'
+            ? (timeout ?? this.onTimeout)
+            : (timeout ?? this.offTimeout)
 
-        this.timer.start(timeout, () => {
+        this.timer.start(timerTimeout, () => {
             this.override = 'auto'
             this.forceSend()
         })
@@ -304,23 +305,34 @@ export class SmallTimerRunner {
         const payload = typeof incomingMsg.payload === 'string'
             ? incomingMsg.payload.toLocaleLowerCase()
             : incomingMsg.payload
+        if (incomingMsg.reset) {
+            this.doOverride('auto') 
+        }
+
+        const timeout = incomingMsg.timeout !== undefined ? Number(incomingMsg.timeout) : undefined
+        if (timeout !== undefined && isNaN(timeout)) {        
+            throw new Error(`Timeout value "${incomingMsg.timeout}" can not be converted to a number`)
+        }
+
         switch (payload) {
         case 0:
         case '0':
         case 'off':
         case false:
-            this.doOverride('tempOff')
+            this.doOverride('tempOff', timeout)
             break
         case 1:
         case '1':
         case 'on':
         case true:
-            this.doOverride('tempOn')
+            this.doOverride('tempOn', timeout)
             break
         case 'toggle':
-            this.doOverride(this.getCurrentState()
-                ? 'tempOff'
-                : 'tempOn',
+            this.doOverride(
+                this.getCurrentState()
+                    ? 'tempOff'
+                    : 'tempOn',
+                timeout,
             )
             break
         case 'auto':
