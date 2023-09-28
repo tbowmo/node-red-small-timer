@@ -305,8 +305,11 @@ export class SmallTimerRunner {
         const payload = typeof incomingMsg.payload === 'string'
             ? incomingMsg.payload.toLocaleLowerCase()
             : incomingMsg.payload
+
         if (incomingMsg.reset) {
-            this.doOverride('auto') 
+            this.doOverride('auto')
+            this.forceSend()
+            return 
         }
 
         const timeout = incomingMsg.timeout !== undefined ? Number(incomingMsg.timeout) : undefined
