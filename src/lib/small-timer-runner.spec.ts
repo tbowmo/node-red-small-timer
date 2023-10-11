@@ -172,6 +172,7 @@ describe('lib/small-timer-runner', () => {
             timeout: 0,
             payload: '0',
             topic: 'test-topic',
+            trigger: 'timer',
         })
         stubs.stubbedTimeCalc.getOnState.returns(true)
         sinon.clock.tick(60000)
@@ -189,6 +190,7 @@ describe('lib/small-timer-runner', () => {
             timeout: 0,
             payload: 'on-msg',
             topic: 'test-topic',
+            trigger: 'timer',
         })
     })
 
@@ -219,6 +221,7 @@ describe('lib/small-timer-runner', () => {
                 timeout: 0,
                 payload: 'off',
                 topic: 'test-topic',
+                trigger: 'timer',
             },
             { debug: 'this is debug', override: 'auto', topic: 'debug' },
         ])
@@ -250,6 +253,7 @@ describe('lib/small-timer-runner', () => {
             timeout: 0,
             payload: '0',
             topic: 'test-topic',
+            trigger: 'timer',
         })
         stubs.stubbedTimeCalc.getOnState.returns(true)
         sinon.clock.tick(1200000)
@@ -285,6 +289,7 @@ describe('lib/small-timer-runner', () => {
                 timeout: 0,
                 payload: '0',
                 topic: 'test-topic',
+                trigger: 'timer',
             })
 
             runner.onMessage({ payload: 'toggle', _msgid: 'some-msg' })
@@ -303,6 +308,7 @@ describe('lib/small-timer-runner', () => {
                 timeout: 0,
                 payload: 'on-msg',
                 topic: 'test-topic',
+                trigger: 'input',
             })
 
             runner.onMessage({ payload: 'toggle', _msgid: 'some-msg' })
@@ -320,6 +326,7 @@ describe('lib/small-timer-runner', () => {
                 timeout: 0,
                 payload: '0',
                 topic: 'test-topic',
+                trigger: 'input',
             })
         })
 
@@ -348,6 +355,7 @@ describe('lib/small-timer-runner', () => {
                 timeout: 0,
                 payload: '0',
                 topic: 'test-topic',
+                trigger: 'timer',
             })
 
             runner.onMessage({ payload: 'sync', _msgid: 'some-id' })
@@ -365,6 +373,7 @@ describe('lib/small-timer-runner', () => {
                 timeout: 0,
                 payload: '0',
                 topic: 'test-topic',
+                trigger: 'input',
             }])
         })
 
@@ -393,6 +402,7 @@ describe('lib/small-timer-runner', () => {
                 timeout: 0,
                 payload: '0',
                 topic: 'test-topic',
+                trigger: 'timer',
             })
 
             runner.onMessage({ payload: 'toggle', timeout: 10, _msgid: 'some-msg' })

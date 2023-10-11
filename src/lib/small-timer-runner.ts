@@ -7,11 +7,14 @@ import {
 } from 'node-red'
 import { util } from '@node-red/util'
 import { ISmallTimerProperties, Rule } from '../nodes/common'
-import { SmallTimerChangeMessage, ISmallTimerMessage } from './interfaces'
+import {
+    SmallTimerChangeMessage,
+    ISmallTimerMessage,
+    Trigger,
+    State,
+} from './interfaces'
 import { TimeCalc } from './time-calculation'
 import { Timer } from './timer'
-
-type Override = 'auto' | 'tempOn' | 'tempOff'
 
 type NodeFunctions = Node
 
@@ -29,7 +32,7 @@ export class SmallTimerRunner {
     // Timing variables
     private tickTimer: ReturnType<typeof setInterval> | undefined = undefined
 
-    private override: Override = 'auto'
+    private override: State = 'auto'
     private currentState = false
 
     private topic: string
@@ -102,7 +105,7 @@ export class SmallTimerRunner {
         } as NodeMessage // we cheat a bit to escape type checking in typescript
     }
 
-    private generateMsg(): SmallTimerChangeMessage {
+    private generateMsg(trigger: Trigger): SmallTimerChangeMessage {
         const on = this.getCurrentState()
 
         const payload = on
@@ -118,14 +121,15 @@ export class SmallTimerRunner {
             timeout: this.timer.timeLeft(),
             payload: payload,
             topic: this.topic,
+            trigger,
         }
     }
 
-    private publishState(): void {
+    private publishState(trigger: Trigger): void {
         if (this.debugMode) {
-            this.node.send([this.generateMsg(), this.generateDebug()])
+            this.node.send([this.generateMsg(trigger), this.generateDebug()])
         } else {
-            this.node.send(this.generateMsg())
+            this.node.send(this.generateMsg(trigger))
         }
     }
 
@@ -177,14 +181,14 @@ export class SmallTimerRunner {
         this.updateNodeStatus()
 
         if (change || this.repeat) {
-            this.publishState()
+            this.publishState('timer')
         }
     }
 
-    private forceSend(): void {
+    private forceSend(trigger: Trigger = 'timer'): void {
         this.calcState()
         this.updateNodeStatus()
-        this.publishState()
+        this.publishState(trigger)
     }
 
     /**
@@ -269,7 +273,7 @@ export class SmallTimerRunner {
         this.node.status(status)
     }
 
-    private doOverride(override: Override, timeout?: number): void {
+    private doOverride(override: State, timeout?: number): void {
         this.override = override
         if (override === 'auto') {
             this.timer.stop()
@@ -309,7 +313,7 @@ export class SmallTimerRunner {
         // eslint-disable-next-line no-extra-boolean-cast
         if (incomingMsg.reset !== undefined) {
             this.doOverride('auto')
-            this.forceSend()
+            this.forceSend('input')
             return 
         }
 
@@ -348,7 +352,7 @@ export class SmallTimerRunner {
         default:
             throw new Error(`Did not understand the command '${incomingMsg.payload}' supplied in payload`)
         }
-        this.forceSend()
+        this.forceSend('input')
     }
 
     /**

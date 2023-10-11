@@ -73,6 +73,7 @@ The rules is read and executed one by one, it is the outcome after the last rule
 By default the node has a single output, which provides the following object: 
 ```ts
 {
+    trigger: 'input' | 'timer',
     autoState: boolean,
     timeout: number,
     temporaryManual: boolean,
@@ -87,6 +88,7 @@ By default the node has a single output, which provides the following object:
 
 | property | description |
 |----------|-------------|
+| trigger  | if the output is triggered by an input message, then this property is set to "input" otherwise it is set to "timer"|
 | autoState|will be true whenever the node is running in auto mode
 |timeout | indicates how long there is until the node will return to auto state, when in temporary override|
 |temporaryManual| Will be true when the node is in temporary override|
