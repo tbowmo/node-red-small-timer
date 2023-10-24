@@ -41,7 +41,7 @@ export = (RED: NodeAPI): void => {
     )
 
     RED.httpAdmin.get(
-        '/smallTimerNodes/:position',
+        '/smallTimerSunCalc/:position',
         RED.auth.needsPermission(''),
         async (req, res) => {
             const positionNode = RED.nodes.getNode(

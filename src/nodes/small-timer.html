@@ -429,7 +429,7 @@
                     types: ["str", "num", "bool", "json"],
                 })
 
-                $.getJSON('smallTimerNodes/' + this.position, (data) => {
+                $.getJSON('smallTimerSunCalc/' + this.position, (data) => {
                     const x = JSON.parse(data)
                     generateTimes('#node-input-startTime', x, false)
                     generateTimes('#node-input-endTime', x, true)
