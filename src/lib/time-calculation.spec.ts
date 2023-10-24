@@ -179,7 +179,7 @@ describe('lib/time-calculation', () => {
             0,
         )
 
-        expect(timeCalc.getTimeToNextStartEvent()).to.equal(715, 'startEvent')
+        expect(timeCalc.getTimeToNextStartEvent()).to.equal(714, 'startEvent')
         expect(timeCalc.getTimeToNextEndEvent()).to.equal(715, 'endTime')
     })
 

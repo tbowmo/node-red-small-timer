@@ -429,8 +429,11 @@
                     types: ["str", "num", "bool", "json"],
                 })
 
-                generateTimes('#node-input-startTime', false)
-                generateTimes('#node-input-endTime', true)
+                $.getJSON('smallTimerNodes/' + this.position, (data) => {
+                    const x = JSON.parse(data)
+                    generateTimes('#node-input-startTime', x, false)
+                    generateTimes('#node-input-endTime', x, true)
+                })
 
                 offsetEnable($('#node-input-startTime').val(), '#node-input-startOffset')
                 offsetEnable($('#node-input-endTime').val(), '#node-input-endOffset')
@@ -487,7 +490,11 @@
             }
         }
         
-        function generateTimes(selectId, endTime = false) {
+        function leadingZero(n) {
+            return `0${n}`.slice(-2)
+        }
+
+        function generateTimes(selectId, sunMoon, endTime = false) {
             $(selectId).hide()
             convertTimes(selectId)
             let html = ''
@@ -498,25 +505,15 @@
                 html = html + `<option value=${time}>${pad(hour)}:${pad(minutes)}</option>`
             }
 
-            html = html + `
-            <option value="1439">Day end</option>
-            <option value="5101">Sunrise</option>
-            <option value="5102">Sunrise end</option>
-            <option value="5103">Morning golden hour end</option>
-            <option value="5104">Solar noon</option>
-            <option value="5105">Evening golden hour start</option>
-            <option value="5106">Sunset start</option>
-            <option value="5107">Sunset</option>
-            <option value="5108">Dusk</option>
-            <option value="5109">Nautical dusk</option>
-            <option value="5110">Night</option>
-            <option value="5111">Nadir</option>
-            <option value="5112">Night end</option>
-            <option value="5113">Nautical dawn</option>
-            <option value="5114">Dawn</option>
-            <option value="5115">Moonrise</option>
-            <option value="5116">Moonset</option>
-        `
+            html = html + '<option value="1439">23:59 - Day end</option>'
+            for (const item of sunMoon) {
+                const time = new Date(item.date)
+                const hour = leadingZero(time.getHours())
+                const minute = leadingZero(time.getMinutes())
+                const tString = `${hour}:${minute}`
+                html += `<option value="${item.id}">${tString} - ${item.label}</option>`
+            }
+
             if (endTime) {
                 html = html + `
             <option value="10001">1 minute</option>

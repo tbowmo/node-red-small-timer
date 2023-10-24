@@ -5,6 +5,7 @@ import {
     ISmallTimerProperties,
 } from './common'
 import { SmallTimerRunner } from '../lib/small-timer-runner'
+import { SunAndMoon } from '../lib/sun-and-moon'
 
 export = (RED: NodeAPI): void => {
     RED.nodes.registerType(
@@ -36,6 +37,20 @@ export = (RED: NodeAPI): void => {
             this.on('close', () => {
                 this.smallTimer.cleanup()
             })
+        },
+    )
+
+    RED.httpAdmin.get(
+        '/smallTimerNodes/:position',
+        RED.auth.needsPermission(''),
+        async (req, res) => {
+            const positionNode = RED.nodes.getNode(
+                req.params.position,
+            ) as IPositionNode
+            if (positionNode?.latitude && positionNode?.longitude) {
+                const sunAndMoon = new SunAndMoon(positionNode.latitude, positionNode.longitude)
+                res.json(JSON.stringify(sunAndMoon.getTimes()))
+            }
         },
     )
 }
