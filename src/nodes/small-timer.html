@@ -511,7 +511,7 @@
                 const hour = leadingZero(time.getHours())
                 const minute = leadingZero(time.getMinutes())
                 const tString = `${hour}:${minute}`
-                html += `<option value="${item.id}">${tString} - ${item.label}</option>`
+                html += `<option value="${item.id}">${item.label} (${tString})</option>`
             }
 
             if (endTime) {
