@@ -38,6 +38,9 @@ Configure the on and off events
 
 ### Time of day
 Set this propperty to the desired on / off time for the day. Can be a specific time, or use a dynamic time such as _sunrise_, _sunset_ etc.
+![image of time of day](images/dynamic-sun-moon-times.png)
+
+_**Note!**_ the timestamps shown under "Dynamic sun and moon times" is calculated on the fly, by the suncalc library, and are shown for the location chosen and current time of year. The actual time used by small timer will be re-calculated regularly, if one of these event times are chosen
 
 ### Offset
 In case of using a dynamic time, this can be used to add an offset to the calculated time. Use it for example to turn the light on 30 minutes before sunrise.

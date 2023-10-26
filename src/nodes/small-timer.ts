@@ -40,16 +40,19 @@ export = (RED: NodeAPI): void => {
         },
     )
 
+    // Create endpoint for the editor to get event times from sunCalc on the selected location
     RED.httpAdmin.get(
-        '/smallTimerSunCalc/:position',
-        RED.auth.needsPermission(''),
+        '/smalltimer/sunCalc/:position',
         async (req, res) => {
             const positionNode = RED.nodes.getNode(
                 req.params.position,
             ) as IPositionNode
+
             if (positionNode?.latitude && positionNode?.longitude) {
                 const sunAndMoon = new SunAndMoon(positionNode.latitude, positionNode.longitude)
-                res.json(JSON.stringify(sunAndMoon.getTimes()))
+                res.json(sunAndMoon.getTimes())
+            } else {
+                res.status(400).send('Missing position')
             }
         },
     )
