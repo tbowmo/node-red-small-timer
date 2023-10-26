@@ -38,47 +38,47 @@ describe('lib/sun-and-moon', () => {
 
         expect(sunAndMoon.getTimes()).to.deep.equal([
             {
-                'date': new Date('2023-01-01T04:00:00.000Z'),
+                'date': new Date('2023-01-01 05:00'),
                 'id': '5101',
                 'label': 'Sunrise',
             },
             {
-                'date': new Date('2023-01-01T10:00:00.000Z'),
+                'date': new Date('2023-01-01 11:00'),
                 'id': '5104',
                 'label': 'Solar noon',
             },
             {
-                'date': new Date('2023-01-01T18:00:00.000Z'),
+                'date': new Date('2023-01-01 19:00'),
                 'id': '5107',
                 'label': 'Sunset',
             },
             {
-                'date': new Date('2023-01-01T20:00:00.000Z'),
+                'date': new Date('2023-01-01 21:00'),
                 'id': '5108',
                 'label': 'Dusk',
             },
             {
-                'date': new Date('2023-01-01T22:00:00.000Z'),
+                'date': new Date('2023-01-01 23:00'),
                 'id': '5110',
                 'label': 'Night',
             },
             {
-                'date': new Date('2023-01-01T03:00:00.000Z'),
+                'date': new Date('2023-01-01 04:00'),
                 'id': '5112',
                 'label': 'Night end',
             },
             {
-                'date': new Date('2023-01-01T05:00:00.000Z'),
+                'date': new Date('2023-01-01 06:00'),
                 'id': '5114',
                 'label': 'Dawn',
             },
             {
-                'date': new Date('2023-01-01T10:00:00.000Z'),
+                'date': new Date('2023-01-01 11:00'),
                 'id': '5115',
                 'label': 'Moonrise',
             },
             {
-                'date': new Date('2023-01-01T11:00:00.000Z'),
+                'date': new Date('2023-01-01 12:00'),
                 'id': '5116',
                 'label': 'Moonset',
             },
