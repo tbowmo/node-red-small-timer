@@ -43,7 +43,7 @@ export = (RED: NodeAPI): void => {
     // Create endpoint for the editor to get event times from sunCalc on the selected location
     RED.httpAdmin.get(
         '/smalltimer/sunCalc/:position',
-        async (req, res) => {
+        (req, res) => {
             const positionNode = RED.nodes.getNode(
                 req.params.position,
             ) as IPositionNode
