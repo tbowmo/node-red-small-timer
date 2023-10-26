@@ -252,12 +252,6 @@
             .apply(null, { length: 31 })
             .map(Number.call, Number)
             .map((item) => ({ label: item + 1, value: item + 1 }));
-        // dayNumbers.unshift({ label: 'All', value: 0 });
-
-        // dayNumbers = [
-        //     ...dayNumbers,
-        //     ...weekDays,
-        // ]
 
         const ruleType = [
             { value: 'include', label: '==' },
@@ -342,13 +336,13 @@
                         monthSelect.append($("<option></option>").val(r.value).text(r.label));
                     })
                     daySelect.append($("<option></option>").val(0).text('Every day'))
-                    dayOfMonth = $('<optGroup label="Day of month" />').appendTo(daySelect);
+                    const dayOfMonth = $('<optGroup label="Day of month" />').appendTo(daySelect);
 
                     dayNumbers.forEach((r) => {
                         dayOfMonth.append($("<option></option>").val(r.value).text(r.label));
                     })
 
-                    dayOfWeek = $('<optGroup label="Day of week"/>').appendTo(daySelect);
+                    const dayOfWeek = $('<optGroup label="Day of week"/>').appendTo(daySelect);
                     weekDays.forEach((r) => {
                         dayOfWeek.append($("<option></option>").val(r.value).text(r.label))
                     })
