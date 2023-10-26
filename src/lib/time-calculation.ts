@@ -1,56 +1,15 @@
 import SunCalc from 'suncalc'
-
-type MoonTimes = keyof SunCalc.GetMoonTimes
-type SunTimes = keyof SunCalc.GetTimesResult
-type MoonAndSun = SunTimes | MoonTimes
+import { SunAndMoon } from './sun-and-moon'
+import { isNotUndefinedOrNull } from './utils'
 
 const wholeDay = 1440 // Whole day in minutes
-
-function isNotUndefined<T>(input: T): input is Exclude<T, undefined> {
-    return input !== undefined
-}
 
 /**
  * Encapsulates logic for start and end times, including dynamically adjusted times (sunset, sunrise etc)
  */
-export class TimeCalc {
+export class TimeCalc extends SunAndMoon {
 
-    // times from suncalc, depends on latitude / longitude and time of year
-    private sunTimes: SunCalc.GetTimesResult | undefined = undefined
-    private moonTimes: SunCalc.GetMoonTimes | undefined = undefined
 
-    private sunLookup: { [key: number]: MoonAndSun } = {
-        // legacy -- fallback if node have old time values
-        5000: 'dawn',
-        5001: 'dusk',
-        5002: 'solarNoon',
-        5003: 'sunrise',
-        5004: 'sunset',
-        5005: 'night',
-        5006: 'nightEnd',
-        5007: 'rise',
-        5008: 'set',
-
-        // new
-        5101: 'sunrise',
-        5102: 'sunriseEnd',
-        5103: 'goldenHourEnd',
-        5104: 'solarNoon',
-        5105: 'goldenHour',
-        5106: 'sunsetStart',
-        5107: 'sunset',
-        5108: 'dusk',
-        5109: 'nauticalDusk',
-        5110: 'night',
-        5111: 'nadir',
-        5112: 'nightEnd',
-        5113: 'nauticalDawn',
-        5114: 'dawn',
-        5115: 'rise', // moon
-        5116: 'set', // moon
-    }
-
-    private lastSunCalcUpdate = -1
     private actualStart = 0
     private actualEnd = 0
     private lastRecalcTime = -1
@@ -62,8 +21,8 @@ export class TimeCalc {
      * @param wrapMidnight
      */
     constructor(
-        private latitude: number,
-        private longitude: number,
+        latitude: number,
+        longitude: number,
         private wrapMidnight: boolean,
         private startTime: number,
         private endTime: number,
@@ -71,22 +30,26 @@ export class TimeCalc {
         private endOffset: number,
         private minimumOnTime: number,
     ) {
+        super(latitude, longitude)
         this.eventCalculation()
     }
 
     private convertDateToTime<
-        T extends (SunCalc.GetTimesResult | SunCalc.GetMoonTimes),
-        P extends keyof T
-    >(
+    T extends (SunCalc.GetTimesResult | SunCalc.GetMoonTimes),
+    P extends keyof T
+>(
         times: T | undefined,
     ): Record<string, number> {
-        return Object.fromEntries(Object.values(this.sunLookup)
-            .map((key) => {
-                if (times && (key in times)) {
-                    return [key, this.getTime(times[(key as P)] as Date)]
-                }
-            })
-            .filter(isNotUndefined))
+        return Object.fromEntries(
+            Object.values(this.sunLookup)
+                .map((key) => {
+                    if (times && (key in times)) {
+                        const t = times[(key as P)]
+                        return t === undefined ? undefined : [key, this.getTime(t as Date)] 
+                    }
+                })
+                .filter(isNotUndefinedOrNull),
+        )
     }
 
     /**
@@ -225,17 +188,6 @@ export class TimeCalc {
         return date.getHours() * 60 + date.getMinutes()
     }
 
-    private updateSunCalc(now = new Date()) {
-        // Only necessary to do the calculations once a day
-        if (this.lastSunCalcUpdate === now.getDay()) {
-            return
-        }
-
-        this.lastSunCalcUpdate = now.getDay()
-        this.sunTimes = SunCalc.getTimes(now, this.latitude, this.longitude)
-        this.moonTimes = SunCalc.getMoonTimes(now, this.latitude, this.longitude)
-    }
-
     private lookupEventTime(time: number, startTime = 0): number {
         if (time <= wholeDay) {
             return time
@@ -245,21 +197,11 @@ export class TimeCalc {
             return (startTime + (time - 10000)) % wholeDay
         }
 
-        const v = this.sunLookup[time]
-
-        if (this.sunTimes && v in this.sunTimes) {
-            const z = this.sunTimes[(v as SunTimes)]
-            return (this.getTime(z))
+        const lookedUptime = this.getSunOrMoonTime(time)
+        if (!lookedUptime) {
+            throw new Error(`Can't look up the correct time '${time}' '${startTime}'`)
         }
 
-        if (this.moonTimes && v in this.moonTimes) {
-            const z = this.moonTimes[(v as MoonTimes)]
-            if (typeof z === 'object') {
-                return this.getTime(z)
-            }
-            return v === 'set' ? wholeDay : 0
-        }
-
-        throw new Error(`Can't look up the correct time '${time}' '${startTime}'`)
+        return this.getTime(lookedUptime)
     }
 }

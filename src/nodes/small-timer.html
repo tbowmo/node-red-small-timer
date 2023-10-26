@@ -223,7 +223,7 @@
 
     (function () {
         const monthNames = [
-            { value: 0, label: 'All' },
+            { value: 0, label: 'Every month' },
             { value: 1, label: "January" },
             { value: 2, label: "February" },
             { value: 3, label: "March" },
@@ -252,12 +252,6 @@
             .apply(null, { length: 31 })
             .map(Number.call, Number)
             .map((item) => ({ label: item + 1, value: item + 1 }));
-        dayNumbers.unshift({ label: 'All', value: 0 });
-
-        dayNumbers = [
-            ...dayNumbers,
-            ...weekDays,
-        ]
 
         const ruleType = [
             { value: 'include', label: '==' },
@@ -282,10 +276,10 @@
 
         function rulesContainer() {
             $("#node-input-rules-container").css('min-height', '150px').css('min-width', '450px').editableList({
-                header: $("<div>").append($.parseHTML(`
+                header: $("<div style='padding-left: 34px; flex-grow: 1'>").append($.parseHTML(`
                        <div style='width:20%; display: inline-grid'>Type</div>
                        <div style='width:30%; display: inline-grid'>Month</div>
-                       <div style='display: inline-grid'>Day of month/week</div>
+                       <div style='width:40%; display: inline-grid'>Day of month/week</div>
                    `)),
                 scrollOnAdd: true,
                 sortable: true,
@@ -341,8 +335,16 @@
                     monthNames.forEach((r) => {
                         monthSelect.append($("<option></option>").val(r.value).text(r.label));
                     })
+                    daySelect.append($("<option></option>").val(0).text('Every day'))
+                    const dayOfMonth = $('<optGroup label="Day of month" />').appendTo(daySelect);
+
                     dayNumbers.forEach((r) => {
-                        daySelect.append($("<option></option>").val(r.value).text(r.label));
+                        dayOfMonth.append($("<option></option>").val(r.value).text(r.label));
+                    })
+
+                    const dayOfWeek = $('<optGroup label="Day of week"/>').appendTo(daySelect);
+                    weekDays.forEach((r) => {
+                        dayOfWeek.append($("<option></option>").val(r.value).text(r.label))
                     })
 
                     monthSelect.val(rule.month);
@@ -429,8 +431,11 @@
                     types: ["str", "num", "bool", "json"],
                 })
 
-                generateTimes('#node-input-startTime', false)
-                generateTimes('#node-input-endTime', true)
+                $.getJSON('smalltimer/sunCalc/' + this.position)
+                    .done((sunCalcTimes) => {
+                        generateTimes('#node-input-startTime', sunCalcTimes, false)
+                        generateTimes('#node-input-endTime', sunCalcTimes, true)
+                    })
 
                 offsetEnable($('#node-input-startTime').val(), '#node-input-startOffset')
                 offsetEnable($('#node-input-endTime').val(), '#node-input-endOffset')
@@ -487,38 +492,43 @@
             }
         }
         
-        function generateTimes(selectId, endTime = false) {
+        function leadingZero(n) {
+            return `0${n}`.slice(-2)
+        }
+
+        function generateTimes(selectId, sunMoon, endTime = false) {
             $(selectId).hide()
             convertTimes(selectId)
-            let html = ''
             const pad = (n) => `00${n.toFixed(0)}`.substr(-2)
+            let fixedTimes = ''
             for (let time = 0; time < 1439; time += 15) {
                 const minutes = time % 60
                 const hour = Math.floor(time / 60)
-                html = html + `<option value=${time}>${pad(hour)}:${pad(minutes)}</option>`
+                fixedTimes += `<option value=${time}>${pad(hour)}:${pad(minutes)}</option>`
+            }
+            fixedTimes += '<option value="1439">23:59 - Day end</option>'
+            
+            let html = `
+            <optgroup label="Fixed time">
+                ${fixedTimes}
+            </optgroup>
+            `
+            let sunCalc = ''
+            for (const item of sunMoon) {
+                const time = new Date(item.date)
+                const hour = leadingZero(time.getHours())
+                const minute = leadingZero(time.getMinutes())
+                const tString = `${hour}:${minute}`
+                sunCalc += `<option value="${item.id}">${tString} - ${item.label}</option>`
             }
 
-            html = html + `
-            <option value="1439">Day end</option>
-            <option value="5101">Sunrise</option>
-            <option value="5102">Sunrise end</option>
-            <option value="5103">Morning golden hour end</option>
-            <option value="5104">Solar noon</option>
-            <option value="5105">Evening golden hour start</option>
-            <option value="5106">Sunset start</option>
-            <option value="5107">Sunset</option>
-            <option value="5108">Dusk</option>
-            <option value="5109">Nautical dusk</option>
-            <option value="5110">Night</option>
-            <option value="5111">Nadir</option>
-            <option value="5112">Night end</option>
-            <option value="5113">Nautical dawn</option>
-            <option value="5114">Dawn</option>
-            <option value="5115">Moonrise</option>
-            <option value="5116">Moonset</option>
-        `
+            html += `
+            <optgroup label="Dynamic sun and moon times">    
+                ${sunCalc}
+            </optgroup>`
             if (endTime) {
                 html = html + `
+            <optgroup label="fixed durations">
             <option value="10001">1 minute</option>
             <option value="10002">2 minutes</option>
             <option value="10005">5 minutes</option>
@@ -528,6 +538,7 @@
             <option value="10060">60 minutes</option>
             <option value="10090">90 minutes</option>
             <option value="10120">120 minutes</option>
+            </optgroup>
             `
             }
             $(`${selectId}-select`).html(html);
