@@ -49,6 +49,7 @@ export class SmallTimerRunner {
     private debugMode = false
 
     private timer = new Timer()
+    private sendEmptyPayload: boolean
 
     constructor(
         position: Position,
@@ -77,6 +78,7 @@ export class SmallTimerRunner {
 
         this.onTimeout = Number(configuration.onTimeout)
         this.offTimeout = Number(configuration.offTimeout)
+        this.sendEmptyPayload = configuration.sendEmptyPayload ?? true
 
         if (configuration.injectOnStartup) {
             this.startupTock = setTimeout(this.forceSend.bind(this), 2000)
@@ -106,9 +108,9 @@ export class SmallTimerRunner {
     }
 
     private generateMsg(trigger: Trigger): SmallTimerChangeMessage {
-        const on = this.getCurrentState()
+        const status = this.getCurrentState()
 
-        const payload = on
+        const payload = status
             ? util.evaluateNodeProperty(this.onMsg, this.onMsgType, this.node, {})
             : util.evaluateNodeProperty(this.offMsg, this.offMsgType, this.node, {})
 
@@ -126,10 +128,19 @@ export class SmallTimerRunner {
     }
 
     private publishState(trigger: Trigger): void {
+        const status = this.generateMsg(trigger)
+        const shouldSendStatus = this.sendEmptyPayload || status.payload !== ''
+
         if (this.debugMode) {
-            this.node.send([this.generateMsg(trigger), this.generateDebug()])
-        } else {
-            this.node.send(this.generateMsg(trigger))
+            this.node.send([
+                shouldSendStatus ? status : null, 
+                this.generateDebug(),
+            ])
+            return
+        } 
+        
+        if (shouldSendStatus) {
+            this.node.send(status)
         }
     }
 

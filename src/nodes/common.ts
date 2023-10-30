@@ -44,4 +44,5 @@ export interface ISmallTimerProperties extends NodeDef {
     wrapMidnight: boolean,
     debugEnable: boolean,
     minimumOnTime: number,
+    sendEmptyPayload: boolean,
 }
