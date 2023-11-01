@@ -108,6 +108,9 @@
                 <label><input type="checkbox" id="node-input-wrapMidnight" > Wrap midnight</label>
                 <label><input type="checkbox" id="node-input-debugEnable" > Debug enable</label>
             </div>
+            <div>
+                <label><input type="checkbox" id="node-input-sendEmptyPayload" > Send empty payload</label>
+            </div>
         </div>
     </div>
 
@@ -381,6 +384,7 @@
                 endOffset: { value: 0, required: true, validate: (v) => !isNaN(v || 0) },
 
                 topic: { value: '' },
+                sendEmptyPayload: {value: true, required: true}, 
 
                 onMsg: { value: '1' },
                 onMsgType: { value: 'str' },
@@ -416,7 +420,7 @@
 
                 node.onTimeout = node.onTimeout ?? node.timeout
                 $('#node-input-onTimeout').val(node.onTimeout)
-
+                $('#node-input-sendEmptyPayload').prop('checked', node.sendEmptyPayload ?? true)
                 node.offTimeout = node.offTimeout ?? node.timeout
                 $('#node-input-offTimeout').val(node.offTimeout)
 

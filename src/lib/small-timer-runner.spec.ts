@@ -36,6 +36,7 @@ describe('lib/small-timer-runner', () => {
             wrapMidnight: false,
             debugEnable: false,
             minimumOnTime: 0,
+            sendEmptyPayload: true,
             id: '',
             type: '',
             name: '',
@@ -225,6 +226,32 @@ describe('lib/small-timer-runner', () => {
             },
             { debug: 'this is debug', override: 'auto', topic: 'debug' },
         ])
+    })
+
+
+    it('should not send message with empty payload', () => {
+        const stubs = setupTest({
+            topic: 'test-topic',
+            onMsg:'on',
+            offMsg: '', // empty string should not be sendt
+            injectOnStartup: true,
+            debugEnable: true,
+            sendEmptyPayload: false,
+        })
+
+        stubs.stubbedTimeCalc.getTimeToNextStartEvent.returns(0)
+        stubs.stubbedTimeCalc.getTimeToNextEndEvent.returns(120.6)
+        stubs.stubbedTimeCalc.getOnState.returns(false)
+
+        const runner = new SmallTimerRunner(stubs.position, stubs.configuration, stubs.node)
+
+        runner.onMessage({payload: 'sync', _msgid: ''})
+        sinon.clock.tick(2000)
+        sinon.assert.calledWith(stubs.send, [
+            null,
+            { debug: 'this is debug', override: 'auto', topic: 'debug' },
+        ])
+
     })
 
     it('should stop timer, and not advance anything after cleanup has been called', async () => {
