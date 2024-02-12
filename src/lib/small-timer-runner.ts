@@ -25,12 +25,16 @@ type Position = {
 
 const pad = (n: number) => n < 10 ? `0${n.toFixed(0)}` : `${n.toFixed(0)}`
 
+// Default to 20 seconds between ticks (update of state / node)
+const defaultTickTimer = 20000
+
 export class SmallTimerRunner {
 
     private startupTock: ReturnType<typeof setTimeout> | undefined = undefined
 
     // Timing variables
     private tickTimer: ReturnType<typeof setInterval> | undefined = undefined
+    private tickTimerInterval: number = 0
 
     private override: State = 'auto'
     private currentState = false
@@ -133,12 +137,12 @@ export class SmallTimerRunner {
 
         if (this.debugMode) {
             this.node.send([
-                shouldSendStatus ? status : null, 
+                shouldSendStatus ? status : null,
                 this.generateDebug(),
             ])
             return
-        } 
-        
+        }
+
         if (shouldSendStatus) {
             this.node.send(status)
         }
@@ -189,10 +193,15 @@ export class SmallTimerRunner {
     private timerEvent(): void {
         const change = this.calcState()
 
-        this.updateNodeStatus()
+        const nextChange = this.updateNodeStatus()
 
         if (change || this.repeat) {
             this.publishState('timer')
+        }
+        if (nextChange < 60) {
+            this.startTickTimer(1000)
+        } else {
+            this.startTickTimer(30000)
         }
     }
 
@@ -218,11 +227,9 @@ export class SmallTimerRunner {
         if (hour) {
             str.push(`${pad(hour)}hrs`)
         }
-        if (minutes >= 2 || hour) {
+        if (minutes >= 1 || hour) {
             str.push(`${pad(minutes)}mins`)
-        }
-        if (minutes < 2 && !hour) {
-            str.push(`${pad(Math.floor(minutes))}mins`)
+        } else {
             str.push(`${pad(seconds)}secs`)
         }
         return str.join(' ')
@@ -231,7 +238,7 @@ export class SmallTimerRunner {
     /**
      * Updates the node status
      */
-    private updateNodeStatus(): void {
+    private updateNodeStatus() {
         let fill: NodeStatusFill = 'yellow'
         const text: string[] = []
 
@@ -249,6 +256,8 @@ export class SmallTimerRunner {
             text.push('minimum on time not met')
         }
 
+        let nextTimeoutOrAuto = Number.MAX_SAFE_INTEGER
+
         if (activeToday || this.override !== 'auto') {
             // default off state
             fill = 'red'
@@ -262,7 +271,7 @@ export class SmallTimerRunner {
                 nextAutoChange = this.timeCalc.getTimeToNextEndEvent()
             }
             const timeout = this.timer.timeLeft()
-            const nextTimeoutOrAuto = timeout && (timeout < nextAutoChange)
+            nextTimeoutOrAuto = timeout && (timeout < nextAutoChange)
                 ? timeout
                 : nextAutoChange
 
@@ -282,6 +291,8 @@ export class SmallTimerRunner {
         }
 
         this.node.status(status)
+
+        return nextTimeoutOrAuto
     }
 
     private doOverride(override: State, timeout?: number): void {
@@ -325,11 +336,11 @@ export class SmallTimerRunner {
         if (incomingMsg.reset !== undefined) {
             this.doOverride('auto')
             this.forceSend('input')
-            return 
+            return
         }
 
         const timeout = incomingMsg.timeout !== undefined ? Number(incomingMsg.timeout) : undefined
-        if (timeout !== undefined && isNaN(timeout)) {        
+        if (timeout !== undefined && isNaN(timeout)) {
             throw new Error(`Timeout value "${incomingMsg.timeout}" can not be converted to a number`)
         }
 
@@ -385,11 +396,16 @@ export class SmallTimerRunner {
         }
     }
 
-    private startTickTimer(interval = 30000): void {
+    private startTickTimer(interval = defaultTickTimer): void {
+        if (this.tickTimer && (interval === this.tickTimerInterval)) {
+            // No need in (re) starting the tick timer, if it running with desired interval already
+            return
+        }
+
         if (this.tickTimer) {
-            // Stop old timers, if they are running
             this.stopTickTimer()
         }
+        this.tickTimerInterval = interval
         this.tickTimer = setInterval(this.timerEvent.bind(this), interval)
     }
 }

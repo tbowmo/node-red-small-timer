@@ -163,7 +163,7 @@ describe('lib/small-timer-runner', () => {
         runner.onMessage({payload: 'sync', _msgid: ''})
         sinon.clock.tick(60000)
 
-        sinon.assert.calledWithExactly(stubs.status, { fill: 'red', shape: 'dot', text: 'OFF for 00mins 00secs' })
+        sinon.assert.calledWithExactly(stubs.status, { fill: 'red', shape: 'dot', text: 'OFF for 00secs' })
         sinon.assert.calledWithExactly(stubs.send, {
             state: 'auto',
             stamp: 2000,
@@ -184,7 +184,7 @@ describe('lib/small-timer-runner', () => {
         )
         sinon.assert.calledWithExactly(stubs.send.lastCall, {
             state: 'auto',
-            stamp: 90000,
+            stamp: 61000,
             autoState: true,
             duration: 0,
             temporaryManual: false,
@@ -270,7 +270,7 @@ describe('lib/small-timer-runner', () => {
         sinon.clock.tick(5000)
         runner.cleanup()
 
-        sinon.assert.calledWithExactly(stubs.status, { fill: 'red', shape: 'dot', text: 'OFF for 00mins 00secs' })
+        sinon.assert.calledWithExactly(stubs.status, { fill: 'red', shape: 'dot', text: 'OFF for 00secs' })
         sinon.assert.calledWithExactly(stubs.send, {
             state: 'auto',
             stamp: 2000,
@@ -306,7 +306,7 @@ describe('lib/small-timer-runner', () => {
             const runner = new SmallTimerRunner(stubs.position, stubs.configuration, stubs.node)
             sinon.clock.tick(80000)
 
-            sinon.assert.calledWithExactly(stubs.status, { fill: 'red', shape: 'dot', text: 'OFF for 00mins 00secs' })
+            sinon.assert.calledWithExactly(stubs.status, { fill: 'red', shape: 'dot', text: 'OFF for 00secs' })
             sinon.assert.calledWithExactly(stubs.send, {
                 state: 'auto',
                 stamp: 2000,
@@ -342,7 +342,7 @@ describe('lib/small-timer-runner', () => {
 
             sinon.assert.calledWithExactly(
                 stubs.status.lastCall,
-                { fill: 'red', shape: 'dot', text: 'OFF for 00mins 00secs' },
+                { fill: 'red', shape: 'dot', text: 'OFF for 00secs' },
             )
             sinon.assert.calledWithExactly(stubs.send.lastCall, {
                 state: 'auto',
@@ -372,7 +372,7 @@ describe('lib/small-timer-runner', () => {
             const runner = new SmallTimerRunner(stubs.position, stubs.configuration, stubs.node)
             sinon.clock.tick(80000)
 
-            sinon.assert.calledWithExactly(stubs.status, { fill: 'red', shape: 'dot', text: 'OFF for 00mins 00secs' })
+            sinon.assert.calledWithExactly(stubs.status, { fill: 'red', shape: 'dot', text: 'OFF for 00secs' })
             sinon.assert.calledWithExactly(stubs.send, {
                 state: 'auto',
                 stamp: 2000,
@@ -419,7 +419,7 @@ describe('lib/small-timer-runner', () => {
             const runner = new SmallTimerRunner(stubs.position, stubs.configuration, stubs.node)
             sinon.clock.tick(80000)
 
-            sinon.assert.calledWithExactly(stubs.status, { fill: 'red', shape: 'dot', text: 'OFF for 00mins 00secs' })
+            sinon.assert.calledWithExactly(stubs.status, { fill: 'red', shape: 'dot', text: 'OFF for 00secs' })
             sinon.assert.calledWithExactly(stubs.send, {
                 state: 'auto',
                 stamp: 2000,
@@ -452,13 +452,13 @@ describe('lib/small-timer-runner', () => {
             const runner = new SmallTimerRunner(stubs.position, stubs.configuration, stubs.node)
             sinon.clock.tick(80000)
 
-            sinon.assert.calledWithExactly(stubs.status, { fill: 'red', shape: 'dot', text: 'OFF for 00mins 00secs' })
+            sinon.assert.calledWithExactly(stubs.status, { fill: 'red', shape: 'dot', text: 'OFF for 00secs' })
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             expect(runner.onMessage.bind(runner.onMessage, { payload: 'invalid', timeout: 'notANumber', _msgid: 'some-id' } as any))
                 .to.throw('Timeout value "notANumber" can not be converted to a number')
 
-            expect(stubs.send.callCount).to.equal(0)  
+            expect(stubs.send.callCount).to.equal(0)
         })
 
         it('should signal error if invalid message is received', () => {
@@ -476,7 +476,7 @@ describe('lib/small-timer-runner', () => {
             const runner = new SmallTimerRunner(stubs.position, stubs.configuration, stubs.node)
             sinon.clock.tick(80000)
 
-            sinon.assert.calledWithExactly(stubs.status, { fill: 'red', shape: 'dot', text: 'OFF for 00mins 00secs' })
+            sinon.assert.calledWithExactly(stubs.status, { fill: 'red', shape: 'dot', text: 'OFF for 00secs' })
 
             expect(runner.onMessage.bind(runner.onMessage, { payload: 'invalid', _msgid: 'some-id' }))
                 .to.throw('Did not understand the command \'invalid\' supplied in payload')
@@ -510,7 +510,7 @@ describe('lib/small-timer-runner', () => {
             runner.onMessage({ payload: 'sync', _msgid: '' })
             sinon.assert.calledWithExactly(
                 stubs.status.lastCall,
-                { fill: 'red', shape: 'dot', text: 'OFF for 00mins 00secs' },
+                { fill: 'red', shape: 'dot', text: 'OFF for 00secs' },
             )
 
         })
@@ -540,7 +540,7 @@ describe('lib/small-timer-runner', () => {
             runner.onMessage({ payload: 'sync', _msgid: '' })
             sinon.assert.calledWithExactly(
                 stubs.status.lastCall,
-                { fill: 'red', shape: 'dot', text: 'OFF for 00mins 00secs' },
+                { fill: 'red', shape: 'dot', text: 'OFF for 00secs' },
             )
         })
     })
