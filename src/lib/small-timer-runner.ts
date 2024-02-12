@@ -25,12 +25,16 @@ type Position = {
 
 const pad = (n: number) => n < 10 ? `0${n.toFixed(0)}` : `${n.toFixed(0)}`
 
+// Default to 20 seconds between ticks (update of state / node)
+const defaultTickTimer = 20000
+
 export class SmallTimerRunner {
 
     private startupTock: ReturnType<typeof setTimeout> | undefined = undefined
 
     // Timing variables
     private tickTimer: ReturnType<typeof setInterval> | undefined = undefined
+    private tickTimerInterval: number = 0
 
     private override: State = 'auto'
     private currentState = false
@@ -133,12 +137,12 @@ export class SmallTimerRunner {
 
         if (this.debugMode) {
             this.node.send([
-                shouldSendStatus ? status : null, 
+                shouldSendStatus ? status : null,
                 this.generateDebug(),
             ])
             return
-        } 
-        
+        }
+
         if (shouldSendStatus) {
             this.node.send(status)
         }
@@ -189,10 +193,13 @@ export class SmallTimerRunner {
     private timerEvent(): void {
         const change = this.calcState()
 
-        this.updateNodeStatus()
+        const newInterval = this.updateNodeStatus()
 
         if (change || this.repeat) {
             this.publishState('timer')
+        }
+        if (newInterval !== this.tickTimerInterval) {
+            this.startTickTimer(newInterval)
         }
     }
 
@@ -231,7 +238,8 @@ export class SmallTimerRunner {
     /**
      * Updates the node status
      */
-    private updateNodeStatus(): void {
+    // eslint-disable-next-line complexity
+    private updateNodeStatus() {
         let fill: NodeStatusFill = 'yellow'
         const text: string[] = []
 
@@ -248,6 +256,7 @@ export class SmallTimerRunner {
         case 'minimumOnTimeNotMet':
             text.push('minimum on time not met')
         }
+        let timerInterval = defaultTickTimer
 
         if (activeToday || this.override !== 'auto') {
             // default off state
@@ -273,6 +282,9 @@ export class SmallTimerRunner {
             else {
                 text.push(`${state} for ${this.getHumanTime(nextTimeoutOrAuto)}`)
             }
+            if (nextTimeoutOrAuto < 60) {
+                timerInterval = 1000
+            }
         }
 
         const status: NodeStatus = {
@@ -282,6 +294,8 @@ export class SmallTimerRunner {
         }
 
         this.node.status(status)
+
+        return timerInterval
     }
 
     private doOverride(override: State, timeout?: number): void {
@@ -325,11 +339,11 @@ export class SmallTimerRunner {
         if (incomingMsg.reset !== undefined) {
             this.doOverride('auto')
             this.forceSend('input')
-            return 
+            return
         }
 
         const timeout = incomingMsg.timeout !== undefined ? Number(incomingMsg.timeout) : undefined
-        if (timeout !== undefined && isNaN(timeout)) {        
+        if (timeout !== undefined && isNaN(timeout)) {
             throw new Error(`Timeout value "${incomingMsg.timeout}" can not be converted to a number`)
         }
 
@@ -385,11 +399,12 @@ export class SmallTimerRunner {
         }
     }
 
-    private startTickTimer(interval = 30000): void {
+    private startTickTimer(interval = defaultTickTimer): void {
         if (this.tickTimer) {
             // Stop old timers, if they are running
             this.stopTickTimer()
         }
+        this.tickTimerInterval = interval
         this.tickTimer = setInterval(this.timerEvent.bind(this), interval)
     }
 }

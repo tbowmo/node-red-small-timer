@@ -54,7 +54,8 @@
         <h4>Basic operation</h4>
         <p><b>Smalltimer</b> is a Node-Red timing node, sending messages for start and end conditions at any time, day, or month</p>
         <p>
-            In the simplest case, Smalltimer requires no input and you need only to consider the first output. But Smalltimer can do much more.
+            In the simplest case, Smalltimer requires no input data. All you do is set the time for when it should emit an on or off message.
+            But Smalltimer can do so much more.
         </p>
         <h4>Advanced operation</h4>
         <p>
@@ -364,7 +365,7 @@
             });
 
         }
-        
+
         function validatePositiveNumber(n) {
             var num = Number(n || 0)
             return !isNaN(num) && num >= 0
@@ -384,7 +385,7 @@
                 endOffset: { value: 0, required: true, validate: (v) => !isNaN(v || 0) },
 
                 topic: { value: '' },
-                sendEmptyPayload: {value: true, required: true}, 
+                sendEmptyPayload: {value: true, required: true},
 
                 onMsg: { value: '1' },
                 onMsgType: { value: 'str' },
@@ -443,7 +444,7 @@
 
                 offsetEnable($('#node-input-startTime').val(), '#node-input-startOffset')
                 offsetEnable($('#node-input-endTime').val(), '#node-input-endOffset')
-                
+
                 $('#node-input-startTime-select').on('change', function () {
                     offsetEnable(this.value, '#node-input-startOffset')
                 })
@@ -453,7 +454,7 @@
                 })
 
                 rulesContainer()
-                
+
                 this.rules.forEach((rule, i) => {
                     $("#node-input-rules-container").editableList('addItem', { r: rule, i: i });
                 })
@@ -495,7 +496,7 @@
                 $(selectId).val(newValue)
             }
         }
-        
+
         function leadingZero(n) {
             return `0${n}`.slice(-2)
         }
@@ -511,7 +512,7 @@
                 fixedTimes += `<option value=${time}>${pad(hour)}:${pad(minutes)}</option>`
             }
             fixedTimes += '<option value="1439">23:59 - Day end</option>'
-            
+
             let html = `
             <optgroup label="Fixed time">
                 ${fixedTimes}
@@ -527,7 +528,7 @@
             }
 
             html += `
-            <optgroup label="Dynamic sun and moon times">    
+            <optgroup label="Dynamic sun and moon times">
                 ${sunCalc}
             </optgroup>`
             if (endTime) {

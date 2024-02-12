@@ -184,7 +184,7 @@ describe('lib/small-timer-runner', () => {
         )
         sinon.assert.calledWithExactly(stubs.send.lastCall, {
             state: 'auto',
-            stamp: 90000,
+            stamp: 61000,
             autoState: true,
             duration: 0,
             temporaryManual: false,
@@ -458,7 +458,7 @@ describe('lib/small-timer-runner', () => {
             expect(runner.onMessage.bind(runner.onMessage, { payload: 'invalid', timeout: 'notANumber', _msgid: 'some-id' } as any))
                 .to.throw('Timeout value "notANumber" can not be converted to a number')
 
-            expect(stubs.send.callCount).to.equal(0)  
+            expect(stubs.send.callCount).to.equal(0)
         })
 
         it('should signal error if invalid message is received', () => {

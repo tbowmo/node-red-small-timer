@@ -29,7 +29,7 @@ Start by configuring a position for your node to do sunrise/sunset etc. calculat
 ## Option checkboxes
 The **repeat** and **inject on startup** checkboxes configures the node to either repeat the output every minute (default is that it only emits a message on state change), and if you want to inject a message upon startup / redeploy of your node red flow. 
 
-**Wrap midnight** will wrap on time around midnight, if on time is 23:00 and off time is 02:00, checking this will turn on before midnight, and off after. If unchecked, it will ignore this. Say, you have a fixed on time at 06:00 in the morning, and a dynamic off time tracking sunrise. When the sunrise is before 06:00 you do not want it to turn on the porch light, you might not want to have the light turned on.
+**Wrap midnight** will wrap `on time` around midnight, if `on time` is 23:00 and `off time` is 02:00, checking this will turn on before midnight, and off after. If unchecked, it will be ignored. This is particular useful if you have a fixed `on time` at 06:00 in the morning, and a dynamic `off time` tracking sunrise, when the sunrise is before 06:00 you might not want it to turn on the porch light, and thus it should not wrap midnight.
 
 **Debug enable** this will add an extra output to the node providing debug information, like the different sunrise/sunset etc. times (see [debug section below](#debug))
 

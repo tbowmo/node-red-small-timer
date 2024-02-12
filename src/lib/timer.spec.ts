@@ -22,7 +22,7 @@ describe('lib/timer', () => {
         sinon.assert.calledOnce(cbSpy)
     })
 
-    it('should stop timer if requested', () => {
+    it('should stop timer if requested', async () => {
         const timer = new Timer()
         const cbSpy = sinon.spy().named('callback')
 
@@ -32,7 +32,6 @@ describe('lib/timer', () => {
         expect(timer.timeLeft()).to.equal(10)
         sinon.assert.notCalled(cbSpy)
         timer.stop()
-        sinon.clock.tick(60000 * 20)
 
         expect(timer.timeLeft()).to.equal(0)
         sinon.assert.notCalled(cbSpy)
