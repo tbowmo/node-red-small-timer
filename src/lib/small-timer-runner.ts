@@ -193,13 +193,15 @@ export class SmallTimerRunner {
     private timerEvent(): void {
         const change = this.calcState()
 
-        const newInterval = this.updateNodeStatus()
+        const nextChange = this.updateNodeStatus()
 
         if (change || this.repeat) {
             this.publishState('timer')
         }
-        if (newInterval !== this.tickTimerInterval) {
-            this.startTickTimer(newInterval)
+        if (nextChange < 60) {
+            this.startTickTimer(1000)
+        } else {
+            this.startTickTimer(30000)
         }
     }
 
@@ -238,7 +240,6 @@ export class SmallTimerRunner {
     /**
      * Updates the node status
      */
-    // eslint-disable-next-line complexity
     private updateNodeStatus() {
         let fill: NodeStatusFill = 'yellow'
         const text: string[] = []
@@ -256,7 +257,8 @@ export class SmallTimerRunner {
         case 'minimumOnTimeNotMet':
             text.push('minimum on time not met')
         }
-        let timerInterval = defaultTickTimer
+
+        let nextTimeoutOrAuto = Number.MAX_SAFE_INTEGER
 
         if (activeToday || this.override !== 'auto') {
             // default off state
@@ -271,7 +273,7 @@ export class SmallTimerRunner {
                 nextAutoChange = this.timeCalc.getTimeToNextEndEvent()
             }
             const timeout = this.timer.timeLeft()
-            const nextTimeoutOrAuto = timeout && (timeout < nextAutoChange)
+            nextTimeoutOrAuto = timeout && (timeout < nextAutoChange)
                 ? timeout
                 : nextAutoChange
 
@@ -281,9 +283,6 @@ export class SmallTimerRunner {
             }
             else {
                 text.push(`${state} for ${this.getHumanTime(nextTimeoutOrAuto)}`)
-            }
-            if (nextTimeoutOrAuto < 60) {
-                timerInterval = 1000
             }
         }
 
@@ -295,7 +294,7 @@ export class SmallTimerRunner {
 
         this.node.status(status)
 
-        return timerInterval
+        return nextTimeoutOrAuto
     }
 
     private doOverride(override: State, timeout?: number): void {
@@ -400,8 +399,12 @@ export class SmallTimerRunner {
     }
 
     private startTickTimer(interval = defaultTickTimer): void {
+        if (this.tickTimer && (interval === this.tickTimerInterval)) {
+            // No need in (re) starting the tick timer, if it running with desired interval already
+            return
+        }
+
         if (this.tickTimer) {
-            // Stop old timers, if they are running
             this.stopTickTimer()
         }
         this.tickTimerInterval = interval
