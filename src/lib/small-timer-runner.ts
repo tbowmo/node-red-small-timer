@@ -227,11 +227,9 @@ export class SmallTimerRunner {
         if (hour) {
             str.push(`${pad(hour)}hrs`)
         }
-        if (minutes >= 2 || hour) {
+        if (minutes >= 1 || hour) {
             str.push(`${pad(minutes)}mins`)
-        }
-        if (minutes < 2 && !hour) {
-            str.push(`${pad(Math.floor(minutes))}mins`)
+        } else {
             str.push(`${pad(seconds)}secs`)
         }
         return str.join(' ')
