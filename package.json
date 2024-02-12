@@ -3,7 +3,7 @@
     "author": {
         "name": "Thomas Bowman Mørch"
     },
-    "version": "0.12.0",
+    "version": "0.12.1",
     "engines": {
         "node": ">=14.0.0"
     },
