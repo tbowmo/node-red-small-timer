@@ -27,6 +27,7 @@ describe('lib/small-timer-runner', () => {
             topic: '',
             injectOnStartup: false,
             repeat: false,
+            repeatInterval: 60,
             disable: false,
             rules: [{ type: 'include', month: 0, day: 0 }],
             onTimeout: 1440,

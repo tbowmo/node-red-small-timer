@@ -25,9 +25,6 @@ type Position = {
 
 const pad = (n: number) => n < 10 ? `0${n.toFixed(0)}` : `${n.toFixed(0)}`
 
-// Default to 20 seconds between ticks (update of state / node)
-const defaultTickTimer = 20000
-
 export class SmallTimerRunner {
 
     private startupTock: ReturnType<typeof setTimeout> | undefined = undefined
@@ -35,7 +32,7 @@ export class SmallTimerRunner {
     // Timing variables
     private tickTimer: ReturnType<typeof setInterval> | undefined = undefined
     private tickTimerInterval: number = 0
-
+    private lastPublish: number = 0
     private override: State = 'auto'
     private currentState = false
 
@@ -46,6 +43,7 @@ export class SmallTimerRunner {
     private offMsgType: string
     private rules: Rule[]
     private repeat: boolean
+    private repeatInterval: number
     private onTimeout: number
     private offTimeout: number
 
@@ -54,6 +52,9 @@ export class SmallTimerRunner {
 
     private timer = new Timer()
     private sendEmptyPayload: boolean
+
+    // Default to 20 seconds between ticks (update of state / node)
+    private defaultTickTimer = 20000
 
     constructor(
         position: Position,
@@ -78,11 +79,16 @@ export class SmallTimerRunner {
         this.offMsgType = configuration.offMsgType
         this.rules = configuration.rules
         this.repeat = configuration.repeat
+        this.repeatInterval = Number(configuration.repeatInterval)
         this.debugMode = configuration.debugEnable
 
         this.onTimeout = Number(configuration.onTimeout)
         this.offTimeout = Number(configuration.offTimeout)
         this.sendEmptyPayload = configuration.sendEmptyPayload ?? true
+
+        // default tick timer is 3 times as frequent as repeat timer, but never below 1 second
+        this.defaultTickTimer = this.repeatInterval * 1000 / 3
+        if (this.defaultTickTimer < 1000) { this.defaultTickTimer = 1000 }
 
         if (configuration.injectOnStartup) {
             this.startupTock = setTimeout(this.forceSend.bind(this), 2000)
@@ -90,7 +96,7 @@ export class SmallTimerRunner {
             this.calcState()
             this.updateNodeStatus()
         }
-        this.startTickTimer()
+        this.startTickTimer(this.defaultTickTimer)
     }
 
     /**
@@ -187,6 +193,15 @@ export class SmallTimerRunner {
         return false
     }
 
+    private shouldRepeatPublish(): boolean {
+        const seconds = Date.now() / 1000
+        if (this.repeat && (seconds - this.lastPublish >= this.repeatInterval)) {
+            this.lastPublish = seconds
+            return true
+        }
+        return false
+    }
+
     /**
      * Handle timer updates
      */
@@ -195,13 +210,14 @@ export class SmallTimerRunner {
 
         const nextChange = this.updateNodeStatus()
 
-        if (change || this.repeat) {
-            this.publishState('timer')
-        }
         if (nextChange < 60) {
             this.startTickTimer(1000)
         } else {
-            this.startTickTimer(30000)
+            this.startTickTimer(this.defaultTickTimer)
+        }
+
+        if (change || this.shouldRepeatPublish()) {
+            this.publishState('timer')
         }
     }
 
@@ -396,7 +412,7 @@ export class SmallTimerRunner {
         }
     }
 
-    private startTickTimer(interval = defaultTickTimer): void {
+    private startTickTimer(interval: number): void {
         if (this.tickTimer && (interval === this.tickTimerInterval)) {
             // No need in (re) starting the tick timer, if it running with desired interval already
             return
