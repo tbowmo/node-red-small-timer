@@ -27,6 +27,7 @@ describe('lib/small-timer-runner', () => {
             topic: '',
             injectOnStartup: false,
             repeat: false,
+            repeatInterval: 60,
             disable: false,
             rules: [{ type: 'include', month: 0, day: 0 }],
             onTimeout: 1440,
@@ -289,6 +290,66 @@ describe('lib/small-timer-runner', () => {
         expect(stubs.send.callCount).to.equal(1)
     })
 
+    describe('repeat functionality', () => {
+        it('should not repeat output when not configured to', () => {
+            const stubs = setupTest({
+                topic: 'test-topic',
+                onMsg: 'on-msg',
+                offMsg: '0',
+                injectOnStartup: false,
+            })
+
+            stubs.stubbedTimeCalc.getTimeToNextStartEvent.returns(0)
+            stubs.stubbedTimeCalc.getTimeToNextEndEvent.returns(20)
+            stubs.stubbedTimeCalc.getOnState.returns(false)
+
+            new SmallTimerRunner(stubs.position, stubs.configuration, stubs.node)
+            sinon.clock.tick(60000)
+
+            expect(stubs.send.callCount).to.equal(0)
+        })
+
+        it('should repeat twice in 60 seconds when configured to 30 second repeat interval', () => {
+            const stubs = setupTest({
+                topic: 'test-topic',
+                onMsg: 'on-msg',
+                offMsg: '0',
+                repeat: true,
+                repeatInterval: 30,
+                injectOnStartup: false,
+            })
+
+            stubs.stubbedTimeCalc.getTimeToNextStartEvent.returns(0)
+            stubs.stubbedTimeCalc.getTimeToNextEndEvent.returns(20)
+            stubs.stubbedTimeCalc.getOnState.returns(false)
+
+            new SmallTimerRunner(stubs.position, stubs.configuration, stubs.node)
+            sinon.clock.tick(60000)
+
+            expect(stubs.send.callCount).to.equal(2)
+        })
+
+        it('should repeat maximum 60 times during a minute, even with repeat interval set to 0.5 seconds', () => {
+            const stubs = setupTest({
+                topic: 'test-topic',
+                onMsg: 'on-msg',
+                offMsg: '0',
+                repeat: true,
+                repeatInterval: 0.5,
+                injectOnStartup: false,
+            })
+
+            stubs.stubbedTimeCalc.getTimeToNextStartEvent.returns(0)
+            stubs.stubbedTimeCalc.getTimeToNextEndEvent.returns(20)
+            stubs.stubbedTimeCalc.getOnState.returns(false)
+
+            new SmallTimerRunner(stubs.position, stubs.configuration, stubs.node)
+            sinon.clock.tick(60000)
+
+            expect(stubs.send.callCount).to.equal(60)
+        })
+    })
+
     describe('message input', () => {
         it('should toggle output when toggle message received', async () => {
             const stubs = setupTest({
@@ -482,6 +543,52 @@ describe('lib/small-timer-runner', () => {
                 .to.throw('Did not understand the command \'invalid\' supplied in payload')
 
             expect(stubs.send.callCount).to.equal(0)
+        })
+
+        it('should handle reset', () => {
+            const stubs = setupTest({
+                topic: 'test-topic',
+                onMsg: 'on-msg',
+                offMsg: '0',
+                injectOnStartup: false,
+            })
+
+            stubs.stubbedTimeCalc.getTimeToNextStartEvent.returns(0)
+            stubs.stubbedTimeCalc.getTimeToNextEndEvent.returns(20)
+            stubs.stubbedTimeCalc.getOnState.returns(false)
+
+            const runner = new SmallTimerRunner(stubs.position, stubs.configuration, stubs.node)
+            sinon.clock.tick(80000)
+
+            sinon.assert.calledWithExactly(stubs.status, { fill: 'red', shape: 'dot', text: 'OFF for 00secs' })
+            runner.onMessage({ payload: 'on', _msgid: 'some-id' })
+            runner.onMessage({ reset: true, _msgid: 'some-id' })
+
+            expect(stubs.send.callCount).to.equal(2)
+
+            sinon.assert.calledWith(stubs.send.firstCall, {
+                state: 'tempOn',
+                stamp: 80000,
+                autoState: false,
+                duration: 0,
+                temporaryManual: true,
+                timeout: 0,
+                payload: 'on-msg',
+                topic: 'test-topic',
+                trigger: 'input',
+            })
+
+            sinon.assert.calledWith(stubs.send.lastCall, {
+                state: 'auto',
+                stamp: 80000,
+                autoState: true,
+                duration: 0,
+                temporaryManual: false,
+                timeout: 0,
+                payload: '0',
+                topic: 'test-topic',
+                trigger: 'input',
+            })
         })
     })
 

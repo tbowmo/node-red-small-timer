@@ -69,7 +69,7 @@
         <h4>Options:</h4>
         <p>
             <code>Repeat</code> will continuously emit output at intervals when checked. If unchecked output is only emitted when state change is detected<br/>
-            <code>Inject on startup</code> Will inject at startup after 2 seconds (allowing node-red to warm up)<br/>
+            <code>Emit on startup</code> Will emit a status message at startup, or redeploy, after 2 seconds (allowing node-red to warm up)<br/>
             <code>Wrap midnight</code> this allows the node to wrap over midnight, eg. if you have on at 23:00 and off at 01:00, if this option is not set
             then the node will assume that it should not turn on the output<br/>
             <code>Debug enable</code> adds an extra output on the node, which includes debug information from suncalc library
@@ -100,17 +100,19 @@
     </div>
     <div class="form-row">
         <label style="vertical-align: top;"><i class="fa fa-cog"></i> Options</label>
-        <div style="display:inline-block;" class="small-timer-options">
-            <div>
-                <label><input type="checkbox" id="node-input-repeat"> Repeat</label>
-                <label><input type="checkbox" id="node-input-injectOnStartup"> Inject on startup</label>
-            </div>
-            <div>
+        <div style="display:inline-block; width: 70%;">
+            <div class="small-timer-options">
                 <label><input type="checkbox" id="node-input-wrapMidnight" > Wrap midnight</label>
+                <label><input type="checkbox" id="node-input-injectOnStartup"> Emit on startup or redeploy</label>
                 <label><input type="checkbox" id="node-input-debugEnable" > Debug enable</label>
-            </div>
-            <div>
                 <label><input type="checkbox" id="node-input-sendEmptyPayload" > Send empty payload</label>
+                <div style="grid-column: 1/3;">
+                    <label style="width: min-content !important;">
+                        <input type="checkbox" id="node-input-repeat"> Repeat
+                    </label><label id="row-repeatInterval" for="node-input-repeatInterval">, with interval (in seconds)
+                        <input type="text" id="node-input-repeatInterval" placeholder="0" style="width: 55px !important;"/>
+                    </label>
+            </div>
             </div>
         </div>
     </div>
@@ -201,6 +203,10 @@
     }
     .small-timer-timers select {
         width: 120px !important;
+    }
+    .small-timer-options {
+        display: grid;
+        grid-template-columns: auto auto;
     }
     .small-timer-options label {
         -webkit-user-select: none;
@@ -366,6 +372,14 @@
 
         }
 
+        function repeatIntervalVisible() {
+            if ($('#node-input-repeat').is(':checked')) {
+                $('#row-repeatInterval').show()
+            } else {
+                $('#row-repeatInterval').hide()
+            }
+        }
+
         function validatePositiveNumber(n) {
             var num = Number(n || 0)
             return !isNaN(num) && num >= 0
@@ -399,6 +413,7 @@
                 rules: { value: [{ type: 'include', month: 0, day: 0 }] },
 
                 repeat: { value: false, required: true },
+                repeatInterval: {value: 60, validate: validatePositiveNumber},
                 wrapMidnight: { value: true },
                 injectOnStartup: { value: false, required: true },
                 debugEnable: { value: false },
@@ -419,6 +434,8 @@
             oneditprepare: function () {
                 var node = this
 
+                repeatIntervalVisible()
+                $('#node-input-repeatInterval').val(node.repeatInterval || 60)
                 node.onTimeout = node.onTimeout ?? node.timeout
                 $('#node-input-onTimeout').val(node.onTimeout)
                 $('#node-input-sendEmptyPayload').prop('checked', node.sendEmptyPayload ?? true)
@@ -460,6 +477,9 @@
                 })
                 $('#node-input-debugEnable').click(function () {
                     $('#node-input-outputs').val(this.checked ? 2 : 1)
+                })
+                $('#node-input-repeat').click(function () {
+                    repeatIntervalVisible()
                 })
             },
             oneditsave: function () {

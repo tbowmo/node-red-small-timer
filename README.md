@@ -27,11 +27,13 @@ This is the key idea about the small timer, you can get it to do exactly that, t
 Start by configuring a position for your node to do sunrise/sunset etc. calculation for. this doesn't need to be super exact, you can use google maps to figure out the latitude / longitude for your site.
 
 ## Option checkboxes
-The **repeat** and **inject on startup** checkboxes configures the node to either repeat the output every minute (default is that it only emits a message on state change), and if you want to inject a message upon startup / redeploy of your node red flow. 
+**Emit on startup** configures the node to emit a message 2 seconds after startup / redeploy of your node red flow. 
 
 **Wrap midnight** will wrap `on time` around midnight, if `on time` is 23:00 and `off time` is 02:00, checking this will turn on before midnight, and off after. If unchecked, it will be ignored. This is particular useful if you have a fixed `on time` at 06:00 in the morning, and a dynamic `off time` tracking sunrise, when the sunrise is before 06:00 you might not want it to turn on the porch light, and thus it should not wrap midnight.
 
 **Debug enable** this will add an extra output to the node providing debug information, like the different sunrise/sunset etc. times (see [debug section below](#debug))
+
+**Repeat** enables the node to repeat status messages with the specified interval (in seconds). If disabled the node will only emit a message when its state changes.
 
 ## On and Off time
 Configure the on and off events

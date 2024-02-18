@@ -37,6 +37,7 @@ export interface ISmallTimerProperties extends NodeDef {
     topic: string,
     injectOnStartup: boolean,
     repeat: boolean,
+    repeatInterval: number,
     disable: boolean,
     rules: Rule[],
     onTimeout: number,
