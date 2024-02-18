@@ -306,7 +306,7 @@ describe('lib/small-timer-runner', () => {
             new SmallTimerRunner(stubs.position, stubs.configuration, stubs.node)
             sinon.clock.tick(60000)
 
-            sinon.assert.notCalled(stubs.send)
+            expect(stubs.send.callCount).to.equal(0)
         })
 
         it('should repeat twice in 60 seconds when configured to 30 second repeat interval', () => {
