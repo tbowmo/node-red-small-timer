@@ -86,17 +86,17 @@ export class SmallTimerRunner {
         if (isNaN(this.repeatInterval)) {
             this.repeatInterval = 60
         }
+        // default tick timer is 3 times as frequent as repeat timer, but never below 1 second
+        this.defaultTickTimer = this.repeatInterval * SecondsTick / 3
+        if (this.defaultTickTimer < SecondsTick) {
+            this.defaultTickTimer = SecondsTick
+        }
 
         this.debugMode = configuration.debugEnable
 
         this.onTimeout = Number(configuration.onTimeout)
         this.offTimeout = Number(configuration.offTimeout)
         this.sendEmptyPayload = configuration.sendEmptyPayload ?? true
-        // default tick timer is 3 times as frequent as repeat timer, but never below 1 second
-        this.defaultTickTimer = this.repeatInterval * SecondsTick / 3
-        if (this.defaultTickTimer < SecondsTick) {
-            this.defaultTickTimer = SecondsTick
-        }
 
         if (configuration.injectOnStartup) {
             this.startupTock = setTimeout(this.forceSend.bind(this), 2 * SecondsTick)
