@@ -15,7 +15,6 @@ import {
 } from './interfaces'
 import { TimeCalc } from './time-calculation'
 import { Timer } from './timer'
-import { isDefinedAndNotEmpty } from './utils'
 
 type NodeFunctions = Node
 
@@ -82,9 +81,12 @@ export class SmallTimerRunner {
         this.offMsgType = configuration.offMsgType
         this.rules = configuration.rules
         this.repeat = configuration.repeat
-        this.repeatInterval = isDefinedAndNotEmpty(configuration.repeatInterval)
-            ? Number(configuration.repeatInterval)
-            : 60
+
+        this.repeatInterval = Number(configuration.repeatInterval)
+        if (isNaN(this.repeatInterval)) {
+            this.repeatInterval = 60
+        }
+
         this.debugMode = configuration.debugEnable
 
         this.onTimeout = Number(configuration.onTimeout)
