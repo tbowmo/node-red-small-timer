@@ -82,10 +82,10 @@ export class SmallTimerRunner {
         this.rules = configuration.rules
         this.repeat = configuration.repeat
 
-        this.repeatInterval = Number(configuration.repeatInterval)
-        if (isNaN(this.repeatInterval)) {
-            this.repeatInterval = 60
-        }
+        this.repeatInterval = this.repeat
+            ? Number(configuration.repeatInterval || 60)
+            : 60
+
         // default tick timer is 3 times as frequent as repeat timer, but never below 1 second
         this.defaultTickTimer = this.repeatInterval * SecondsTick / 3
         if (this.defaultTickTimer < SecondsTick) {
