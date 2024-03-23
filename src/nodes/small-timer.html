@@ -80,8 +80,8 @@
         <p>Topic that should be sent to</p>
         <h4>On and off messages</h4>
         <p>This is the messages that is sent as payload when on or off states happen. Can be configured as object, number or string values</p>
-        <h4>Rules</h4>
-        <p>Rules can be used to disable, or enable, the node on specific days, months, weekdays etc.</p>
+        <h4>Schedule rules</h4>
+        <p>This is used to specify the schedule of when the timer should or should not operate. The set of "rules" is evaluated one by one, and the outcome of the last decides if its on or off.</p>
         <h3>References</h3>
     <ul>
         <li><a href="https://github.com/tbowmo/node-red-small-timer">Github</a> - The github repository</li>
@@ -117,9 +117,23 @@
         </div>
     </div>
 
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tasks"></i> Topic</label>
+        <input type="text" id="node-input-topic" placeholder="Topic">
+    </div>
+    <div class="form-row">
+        <label for="node-input-onMsg"><i class="fa fa-sign-out"></i> On message</label>
+        <input type="text" id="node-input-onMsg">
+        <input type="hidden" id="node-input-onMsgType">
+    </div>
+    <div class="form-row">
+        <label for="node-input-offMsg"><i class="fa fa-sign-out"></i> Off message</label>
+        <input  type="text" id="node-input-offMsg">
+        <input type="hidden" id="node-input-offMsgType">
+    </div>
+
     <div class="form-tips">
-        <b>Tip</b> <em>Offset</em>, <em>override timeout</em> and <em>minimum time</em> are specified in number of minutes.<br />
-        <em>Offset</em> can be both a positive and negative number, while <em>override timeout</em> and <em>minimum time</em> must be positive numbers
+        <b>Tip</b> <em>Offset</em>, <em>override timeout</em> and <em>minimum time</em> are specified in number of minutes.
     </div>
     <div class="form-row" style="margin-bottom: 0;">
         <label></label>
@@ -156,26 +170,9 @@
             </div>
         </div>
     </div>
-    <div class="form-row">
-        <label for="node-input-name"><i class="fa fa-tasks"></i> Topic</label>
-        <input type="text" id="node-input-topic" placeholder="Topic">
-    </div>
-    <div class="form-row">
-        <label for="node-input-onMsg"><i class="fa fa-sign-out"></i> On message</label>
-        <input type="text" id="node-input-onMsg">
-        <input type="hidden" id="node-input-onMsgType">
-    </div>
-    <div class="form-row">
-        <label for="node-input-offMsg"><i class="fa fa-sign-out"></i> Off message</label>
-        <input  type="text" id="node-input-offMsg">
-        <input type="hidden" id="node-input-offMsgType">
-    </div>
     <div class="form-row node-input-rules-container-row">
-        <label style="width: 400px;">Rules</label>
+        <label style="width: 400px;">Schedule rules</label>
         <ol id="node-input-rules-container"></ol>
-    </div>
-    <div class="form-tips">
-        If day exceeds the number of days available in the specified month, it is considered to be the last day of the month.<br/>
     </div>
     <input id="node-input-outputs" type="hidden" value="1">
 </script>
@@ -233,7 +230,6 @@
 
     (function () {
         const monthNames = [
-            { value: 0, label: 'Every month' },
             { value: 1, label: "January" },
             { value: 2, label: "February" },
             { value: 3, label: "March" },
@@ -248,14 +244,24 @@
             { value: 12, label: "December" }
         ];
 
+        const weekNumbers = Array
+            .apply(null, { length: 52})
+            .map(Number.call, Number)
+            .map((item) => ({ label: `Week ${item+1}`, value: item + 101 }))
+
+        const oddEvenWeeks = [
+            { value: 200, label: 'Even weeks' },
+            { value: 201, label: 'Odd weeks' },
+        ]
+
         const weekDays = [
-            { value: 100, label: 'Sunday' },
             { value: 101, label: 'Monday' },
             { value: 102, label: 'Tuesday' },
             { value: 103, label: 'Wednesday' },
             { value: 104, label: 'Thursday' },
             { value: 105, label: 'Friday' },
             { value: 106, label: 'Saturday' },
+            { value: 100, label: 'Sunday' },
         ]
 
         let dayNumbers = Array
@@ -265,7 +271,7 @@
 
         const ruleType = [
             { value: 'include', label: '==' },
-            { value: 'exclude', label: '<>' }
+            { value: 'exclude', label: '!=' }
         ]
 
         function exportRule(monthDay) {
@@ -284,12 +290,19 @@
             }
         }
 
+        function addGroup(groupName, select, options) {
+            const group = $(`<optGroup label="${groupName}" />`).appendTo(select);
+            options.forEach((r) => {
+                group.append($("<option></option>").val(r.value).text(r.label));
+            })
+        }
+
         function rulesContainer() {
             $("#node-input-rules-container").css('min-height', '150px').css('min-width', '450px').editableList({
                 header: $("<div style='padding-left: 34px; flex-grow: 1'>").append($.parseHTML(`
-                       <div style='width:20%; display: inline-grid'>Type</div>
-                       <div style='width:30%; display: inline-grid'>Month</div>
-                       <div style='width:40%; display: inline-grid'>Day of month/week</div>
+                       <div style='width:10%; display: inline-grid'>Type</div>
+                       <div style='width:37%; display: inline-grid'>Month/week</div>
+                       <div style='width:47%; display: inline-grid'>Day of month/week</div>
                    `)),
                 scrollOnAdd: true,
                 sortable: true,
@@ -335,27 +348,39 @@
                     });
 
                     const row = $('<div></div>', { style: "flex-grow:1" }).appendTo(container);
-                    const typeSelect = $('<select/>', { style: "width:20%; margin-left:5px" }).addClass('typeSelect').appendTo(row);
-                    const monthSelect = $('<select/>', { style: "width:30%; margin-left:5px" }).addClass('monthSelect').appendTo(row);
-                    const daySelect = $('<select/>', { style: "width:40%; margin-left:5px" }).addClass('daySelect').appendTo(row);
+                    const typeSelect = $('<select/>', { style: "width:10%; margin-left:5px" }).addClass('typeSelect').appendTo(row);
+                    const monthSelect = $('<select/>', { style: "width:37%; margin-left:5px" }).addClass('monthSelect').appendTo(row);
+                    const daySelect = $('<select/>', { style: "width:47%; margin-left:5px" }).addClass('daySelect').appendTo(row);
+
+                    monthSelect.on('change', function () {
+                        let currentDay = Number(daySelect.val());
+                        daySelect.empty()
+                        daySelect.append($("<option></option>").val(0).text('Every day'))
+                        if (this.value < 100) {
+                            addGroup('Day of month', daySelect, dayNumbers)
+                        } else {
+                            if (currentDay < 100) {
+                                currentDay = 0
+                            }
+                        }
+                        addGroup('Day of week', daySelect, weekDays)
+                        daySelect.val(currentDay)
+                    })
 
                     ruleType.forEach((r) => {
                         typeSelect.append($("<option></option>").val(r.value).text(r.label));
                     })
-                    monthNames.forEach((r) => {
-                        monthSelect.append($("<option></option>").val(r.value).text(r.label));
-                    })
+
+                    monthSelect.append($("<option></option>").val(0).text('Every month/week'))
+                    addGroup('Month', monthSelect, monthNames)
+                    addGroup('Odd/Even weeks', monthSelect, oddEvenWeeks)
+                    addGroup('Weeks', monthSelect, weekNumbers)
+
                     daySelect.append($("<option></option>").val(0).text('Every day'))
-                    const dayOfMonth = $('<optGroup label="Day of month" />').appendTo(daySelect);
-
-                    dayNumbers.forEach((r) => {
-                        dayOfMonth.append($("<option></option>").val(r.value).text(r.label));
-                    })
-
-                    const dayOfWeek = $('<optGroup label="Day of week"/>').appendTo(daySelect);
-                    weekDays.forEach((r) => {
-                        dayOfWeek.append($("<option></option>").val(r.value).text(r.label))
-                    })
+                    if (rule.month < 100) {
+                        addGroup('Day of month', daySelect, dayNumbers)
+                    }
+                    addGroup('Day of week', daySelect, weekDays)
 
                     monthSelect.val(rule.month);
                     typeSelect.val(rule.type);

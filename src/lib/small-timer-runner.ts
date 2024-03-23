@@ -162,12 +162,32 @@ export class SmallTimerRunner {
         }
     }
 
+    private getDateWeek(currentDate: Date) {
+        const januaryFirst =
+            new Date(currentDate.getFullYear(), 0, 1)
+        const daysToNextMonday =
+            (januaryFirst.getDay() === 1) ? 0 :
+                (7 - januaryFirst.getDay()) % 7
+        const nextMonday: Date =
+            new Date(currentDate.getFullYear(), 0,
+                januaryFirst.getDate() + daysToNextMonday)
+
+        return (currentDate < nextMonday) ? 52 :
+            (currentDate > nextMonday ? Math.ceil(
+                (currentDate.getTime() - nextMonday.getTime()) / (24 * 3600 * 1000) / 7) : 1)
+    }
+
     private isDayOk(date = new Date()): boolean {
         const month = date.getMonth() + 1
+        const week = this.getDateWeek(date)
         const dayOfMonth = date.getDate()
         const dayOfWeek = date.getDay()
 
-        const validMonths = [0, month]
+        const oddOrEvenWeek = Math.floor(week / 2) === week / 2
+            ? 200
+            : 201
+
+        const validMonths = [0, month, week + 100, oddOrEvenWeek]
         const validDays = [0, dayOfMonth, dayOfWeek + 100]
 
         let isOk = false
@@ -352,16 +372,15 @@ export class SmallTimerRunner {
     public onMessage(
         incomingMsg: Readonly<ISmallTimerMessage>,
     ): void {
-        const payload = typeof incomingMsg.payload === 'string'
-            ? incomingMsg.payload.toLocaleLowerCase()
-            : incomingMsg.payload
-
-        // eslint-disable-next-line no-extra-boolean-cast
         if (incomingMsg.reset !== undefined) {
             this.doOverride('auto')
             this.forceSend('input')
             return
         }
+
+        const payload = typeof incomingMsg.payload === 'string'
+            ? incomingMsg.payload.toLocaleLowerCase()
+            : incomingMsg.payload
 
         const timeout = incomingMsg.timeout !== undefined ? Number(incomingMsg.timeout) : undefined
         if (timeout !== undefined && isNaN(timeout)) {
