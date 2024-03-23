@@ -358,10 +358,8 @@
                         daySelect.append($("<option></option>").val(0).text('Every day'))
                         if (this.value < 100) {
                             addGroup('Day of month', daySelect, dayNumbers)
-                        } else {
-                            if (currentDay < 100) {
-                                currentDay = 0
-                            }
+                        } else if (currentDay < 100) {
+                            currentDay = 0
                         }
                         addGroup('Day of week', daySelect, weekDays)
                         daySelect.val(currentDay)

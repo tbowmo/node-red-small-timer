@@ -172,9 +172,12 @@ export class SmallTimerRunner {
             new Date(currentDate.getFullYear(), 0,
                 januaryFirst.getDate() + daysToNextMonday)
 
-        return (currentDate < nextMonday) ? 52 :
-            (currentDate > nextMonday ? Math.ceil(
-                (currentDate.getTime() - nextMonday.getTime()) / (24 * 3600 * 1000) / 7) : 1)
+        if (currentDate < nextMonday) {
+            return 52
+        }
+        return currentDate > nextMonday
+            ? Math.ceil((currentDate.getTime() - nextMonday.getTime()) / (24 * 3600 * 1000) / 7)
+            : 1
     }
 
     private isDayOk(date = new Date()): boolean {
