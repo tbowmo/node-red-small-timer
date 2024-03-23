@@ -121,6 +121,7 @@ export class SmallTimerRunner {
         return {
             ...this.timeCalc.debug(),
             override: this.override,
+            weekNumber: this.getWeekNumber(),
             topic: 'debug',
         } as NodeMessage // we cheat a bit to escape type checking in typescript
     }
@@ -162,27 +163,20 @@ export class SmallTimerRunner {
         }
     }
 
-    private getDateWeek(currentDate: Date) {
-        const januaryFirst =
-            new Date(currentDate.getFullYear(), 0, 1)
-        const daysToNextMonday =
-            (januaryFirst.getDay() === 1) ? 0 :
-                (7 - januaryFirst.getDay()) % 7
-        const nextMonday: Date =
-            new Date(currentDate.getFullYear(), 0,
-                januaryFirst.getDate() + daysToNextMonday)
-
-        if (currentDate < nextMonday) {
-            return 52
-        }
-        return currentDate > nextMonday
-            ? Math.ceil((currentDate.getTime() - nextMonday.getTime()) / (24 * 3600 * 1000) / 7)
-            : 1
+    private getWeekNumber(currentDate = new Date()): number {
+        currentDate.setHours(0, 0, 0, 0)
+        // Thursday in current week decides the year.
+        currentDate.setDate(currentDate.getDate() + 3 - (currentDate.getDay() + 6) % 7)
+        // January 4 is always in week 1.
+        const week1 = new Date(currentDate.getFullYear(), 0, 4)
+        // Adjust to Thursday in week 1 and count number of weeks from date to week1.
+        return 1 + Math.round(((currentDate.getTime() - week1.getTime()) / 86400000
+                              - 3 + (week1.getDay() + 6) % 7) / 7)
     }
 
     private isDayOk(date = new Date()): boolean {
         const month = date.getMonth() + 1
-        const week = this.getDateWeek(date)
+        const week = this.getWeekNumber(date)
         const dayOfMonth = date.getDate()
         const dayOfWeek = date.getDay()
 
