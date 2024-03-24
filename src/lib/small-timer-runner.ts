@@ -163,7 +163,9 @@ export class SmallTimerRunner {
         }
     }
 
-    private getWeekNumber(currentDate = new Date()): number {
+    private getWeekNumber(): number {
+        // Idea from https://weeknumber.com/how-to/javascript
+        const currentDate = new Date()
         currentDate.setHours(0, 0, 0, 0)
         // Thursday in current week decides the year.
         currentDate.setDate(currentDate.getDate() + 3 - (currentDate.getDay() + 6) % 7)
@@ -176,7 +178,7 @@ export class SmallTimerRunner {
 
     private isDayOk(date = new Date()): boolean {
         const month = date.getMonth() + 1
-        const week = this.getWeekNumber(date)
+        const week = this.getWeekNumber()
         const dayOfMonth = date.getDate()
         const dayOfWeek = date.getDay()
 
