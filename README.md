@@ -1,45 +1,44 @@
+# Node-red-small-timer
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=tbowmo_node-red-small-timer&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=tbowmo_node-red-small-timer)
 ![Sonar cloud test](https://github.com/tbowmo/node-red-small-timer/actions/workflows/sonarcloud.yml/badge.svg)
 ![Build status](https://github.com/tbowmo/node-red-small-timer/actions/workflows/node-builds.yml/badge.svg)
 
-# Node-red-small-timer
-
-A node-RED timer node to rule them all.
+A node-red timer node to rule them all.
 
 # Install
+Either use the palette manager in Node-RED to install the plugin, or use a terminal to install directly in your local installation of Node-RED:
+```bash
+npm install @tbowmo/node-red-small-timer
+```
 
-Within your local installation of Node-RED run:
+Once installed, restart your node-red server, and you will have a set of new nodes available in your palette under timers.
 
-`npm install @tbowmo/node-red-small-timer`
+# SmallTimer for Node-RED
+This node is the heart of the matter; it delivers either an on or off message at scheduled intervals. These intervals can be consistent daily occurrences, like '19:00' for 'on' and '23:00' for 'off', perfect for controlling a porch light. However, its true power lies in its ability to activate the light at sunset and deactivate it at dusk. Pretty cool, right?
 
-Once installed, restart your node-red server, and you will have a set of new nodes available in your palette under timers:
-
-# Node-RED SmallTimer
-
-This node is what all the fuzz is about, it injects either an `on` or `off` message at set times. These can either be at the same time every day, say '19:00' for on, and '23:00' for off, if you want to have a porch light turned on. But the real strength here is that you can have it turn on the light at _sunset_ and off at _dusk_, now isn't that cool?
-
-This is the key idea about the small timer, you can get it to do exactly that, turn on a light at sunset, and off again at dusk.
+This encapsulates the core concept of SmallTimer: the ability to accomplish precisely that — activate a light at sunset and deactivate it at dusk.
 
 # Setup
 
 ![image of configuration](images/small-timer-config.png)
 
-Start by configuring a position for your node to do sunrise/sunset etc. calculation for. this doesn't need to be super exact, you can use google maps to figure out the latitude / longitude for your site.
+Start by configuring a position for your node to do sunrise/sunset calculations. This doesn't need to be very exact. You can either let your browser do it by pressing the button "Get position from browser" or use other means like Google Maps to find the latitude/longitude for your site.
 
 ## Option checkboxes
-**Emit on startup** configures the node to emit a message 2 seconds after startup / redeploy of your node red flow. 
+**Wrap midnight**: Will wrap `on time` around midnight, if `on time` is 23:00 and `off time` is 02:00, checking this will turn on before midnight, and off after. If unchecked, it will be ignored. This is particularly useful if you have a fixed `on time` at 06:00 in the morning, and a dynamic `off time` tracking sunrise, when the sunrise is before 06:00 you might not want it to turn on the porch light, and thus it should not wrap midnight.
 
-**Wrap midnight** will wrap `on time` around midnight, if `on time` is 23:00 and `off time` is 02:00, checking this will turn on before midnight, and off after. If unchecked, it will be ignored. This is particular useful if you have a fixed `on time` at 06:00 in the morning, and a dynamic `off time` tracking sunrise, when the sunrise is before 06:00 you might not want it to turn on the porch light, and thus it should not wrap midnight.
+**Emit on startup**: Configures the node to emit a message 2 seconds after startup / redeploy of your node red flow.
 
-**Debug enable** this will add an extra output to the node providing debug information, like the different sunrise/sunset etc. times (see [debug section below](#debug))
+**Debug enable**: This will add an extra output to the node providing debug information, like the different sunrise/sunset etc. times (see [debug section below](#debug))
 
-**Repeat** enables the node to repeat status messages with the specified interval (in seconds). If disabled the node will only emit a message when its state changes.
+**Repeat**: Enables the node to repeat status messages with the specified interval (in seconds). If disabled the node will only emit a message when its state changes.
 
 ## On and Off time
 Configure the on and off events
 
 ### Time of day
-Set this propperty to the desired on / off time for the day. Can be a specific time, or use a dynamic time such as _sunrise_, _sunset_ etc.
+Set this property to the desired on / off time for the day. Can be a specific time, or use a dynamic time such as _sunrise_, _sunset_ etc.
+
 ![image of time of day](images/dynamic-sun-moon-times.png)
 
 _**Note!**_ the timestamps shown under "Dynamic sun and moon times" is calculated on the fly, by the suncalc library, and are shown for the location chosen and current time of year. The actual time used by small timer will be re-calculated regularly, if one of these event times are chosen
@@ -62,20 +61,35 @@ Payload of the output message is set to this value during on, can be set to json
 ## Off message
 Payload of the output message is set to this value during off, can be set to json, number, string, or boolean
 
-## Rules
-This can be used to configure what days the rule should / should not run. 
+## Schedule rules
+This is used to determine the schedule of when the timer should or should not operate.
 
 **==** is include, this specifies days where the rule should run
 
-**<>** is exclude, this specifies days where the rule does _not_ run.
+**!=** is exclude, this specifies days where the rule does _not_ run.
 
-Note that if the state is turned on by auto state, it will also run at the off time, even if the day is excluded.
+_Note_ that if the state is turned on by auto state, it will also run at the off time, even if the day is excluded (ie, if the off time is after midnight and the day is excluded).
 
-The rules is read and executed one by one, it is the outcome after the last rule has been read, that defines if the day is included or excluded
+The rules are read and executed one by one, it is the outcome after the last rule has been read, that defines if the day is included or excluded
+
+If the node is turned on on a "do not run day", temporary on is used, and output will be turned off after set timeout
+
+_Default logic state is that the timer is disabled, so you need at least one rule that turns it on (**==**)._
+
+### Month / week
+
+Note that the weeks numbers are calculated according to ISO8601, which means that weeks start on mondays.
+
+### Examples of schedule rules
+1) Run on every day, except thursdays in July<br>
+![All days except thursdays in July](images/all-days-except-thursdays-in-july.png)
+
+2) Run on mondays in odd weeks, except all of December<br>
+![Odd weeks on mondays, except December](images/odd-weeks-on-mondays-except-december.png)
 
 # Output
 
-By default the node has a single output, which provides the following object: 
+By default the node has a single output, which provides the following object:
 ```ts
 {
     trigger: 'input' | 'timer',
@@ -91,44 +105,44 @@ By default the node has a single output, which provides the following object:
 
 ```
 
-| property | description |
-|----------|-------------|
-| trigger  | if the output is triggered by an input message, then this property is set to "input" otherwise it is set to "timer"|
-| autoState|will be true whenever the node is running in auto mode
-|timeout | indicates how long there is until the node will return to auto state, when in temporary override|
-|temporaryManual| Will be true when the node is in temporary override|
-|duration| time until next on, or off, event happens|
-|state| will be one of auto, tempOn or tempOff|
-|stamp| current unix timestamp (since epoch)|
+| property        | description
+|-----------------|-----------------------------------------------------------
+| trigger         | if the output is triggered by an input message, then this property is set to "input" otherwise it is set to "timer"
+| autoState       | will be true whenever the node is running in auto mode
+| timeout         | indicates how long there is until the node will return to auto state, when in temporary override
+| temporaryManual | Will be true when the node is in temporary override
+| duration        | time until next on, or off, event happens
+| state           | will be one of auto, tempOn or tempOff
+| stamp           | current unix timestamp (since epoch)
 
 # Input
 
-The input of the node takes a few commands in the payload property og the message sent _to_ small timer, these are completely optional and not needed for normal operation, but can be used to do temporary on / off etc.
+The input of the node takes a few commands in the payload property of the message sent _to_ small timer, these are completely optional and not needed for normal operation, but can be used to turn the output temporary on or off.
 
-| payload | description |
-|---------|-------------|
-| 1 / on|Turns the output temporarily on|
-| 0 / off|Turns the output temporarily off|
-|auto / default|Sets the node back to autostate, and outputs whatever the autostate would be (on/off)|
-|sync|Emits the current state on the output|
+| payload        | description
+|----------------|--------------------------------------
+| 1 / on         | Turns the output temporarily on
+| 0 / off        | Turns the output temporarily off
+| auto / default | Sets the node back to autostate, and outputs whatever the autostate would be (on/off)
+| sync           | Emits the current state on the output
 
-Using the temporary on/off, will emit the respective on/off message on the output (and repeat it every minute, if so requested), at the same time it will start an internal countdown with the values for temporary override set in the node, and when the countdown reaches 0 it will resume auto mode.
+Using the temporary on/off feature will emit the respective on/off message on the output. Simultaneously, it will start an internal timer with the value from the 'Override timeout' configuration option. When this timer runs out, the node will resume auto mode.
 
-Note that if you do a temporary on / off to the same state that the automode will be in, then the node will return to auto state!
+Note that if you do a temporary on/off to the same state that the auto mode will be in, then the node will return to auto state!
 
-Sending the auto (or default) to small timer, will cause it to return to automode (if it was in a temporary on/off state earlier).
+Sending the auto (or default) to the small timer will cause it to return to auto mode (if it was in a temporary on/off state earlier).
 
-**NOTE!** if the input payload property contains non decodable properties / strings, the input will be ignored, and an error will be emitted to Node-Red
+**NOTE:** If the input payload property contains non-decodable properties/strings, the input will be ignored, and an error will be emitted to Node-RED.
 
 ## Optional properties on input message
-| property |   type  |description |
-|----------|---------|------------|
-| reset    | boolean |If this property resolves to a truthy value, the node will be reset to auto mode
-| timeout  | number  |This can be used to override the timeout set in the configuration, and applies to the current on or off command. If left out / undefined, the configured timeout will be used
+| property | type    | description
+|----------|---------|--------------------------------
+| reset    | boolean | If this property resolves to a truthy value, the node will be reset to auto mode
+| timeout  | number  | This can be used to override the timeout set in the configuration, and applies to the current on or off command. If left out / undefined, the configured timeout will be used
 
 # Debug
 
-When debug is enabled, the node will have a secondary output, which emits data from the suncalc calculations for sunrise/sunset etc. This data will be emitted at the same time as the main output is emitted (at changes, or when sync is sent to the input)
+When debug is enabled, the node will have a secondary output, which emits data from the suncalc calculations for sunrise/sunset, etc. This data will be emitted at the same time as the main output is emitted (at changes, or when sync is sent to the input).
 
 The debug output will contain the following data
 ```ts
@@ -157,6 +171,6 @@ The debug output will contain the following data
     operationToday: 'normal' | 'noMidnightWrap' | 'minimumOnTimeNotMet',
 }
 ```
-All the above numbers will be number of minutes since midnight on the day the event happens, except nextStart and nextEnd, which will be the number of minutes until the next event.
+All the above numbers will represent the number of minutes since midnight on the day the event happens, except for nextStart and nextEnd, which will indicate the number of minutes until the next event.
 
-The debug object can be extended with new properties in future releases that might not be described fully here.
+The debug object can be extended with new properties in future releases that might not be fully described here.

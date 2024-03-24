@@ -225,7 +225,12 @@ describe('lib/small-timer-runner', () => {
                 topic: 'test-topic',
                 trigger: 'timer',
             },
-            { debug: 'this is debug', override: 'auto', topic: 'debug' },
+            {
+                debug: 'this is debug',
+                override: 'auto',
+                topic: 'debug',
+                weekNumber: 1,
+            },
         ])
     })
 
@@ -250,7 +255,12 @@ describe('lib/small-timer-runner', () => {
         sinon.clock.tick(2000)
         sinon.assert.calledWith(stubs.send, [
             null,
-            { debug: 'this is debug', override: 'auto', topic: 'debug' },
+            {
+                debug: 'this is debug',
+                override: 'auto',
+                topic: 'debug',
+                weekNumber: 1,
+            },
         ])
 
     })
@@ -596,10 +606,12 @@ describe('lib/small-timer-runner', () => {
 
     describe('rules check', () => {
         it('should exclude a specific day of week', () => {
+            sinon.clock.setSystemTime(new Date('2020-12-30')) // December 30th 2020 is wednesday in week 53
             const stubs = setupTest({
                 rules: [
                     { type: 'include', month: 0, day: 0 },
-                    { type: 'exclude', month: 12, day: 101 }, // 101 is monday
+                    // Exclude wednesday (103) in week 53
+                    { type: 'exclude', month: 153, day: 103 },
                 ],
             })
             stubs.stubbedTimeCalc.getTimeToNextStartEvent.returns(0)
@@ -608,20 +620,18 @@ describe('lib/small-timer-runner', () => {
 
             const runner = new SmallTimerRunner(stubs.position, stubs.configuration, stubs.node)
 
-            sinon.clock.setSystemTime(new Date('2023-12-04')) // December 4th 2023 is a monday
             runner.onMessage({ payload: 'sync', _msgid: '' })
             sinon.assert.calledWithExactly(
                 stubs.status.lastCall,
                 { fill: 'yellow', shape: 'dot', text: 'No action today' },
             )
 
-            sinon.clock.setSystemTime(new Date('2023-12-05')) // December 4th 2023 is a tuesday
+            sinon.clock.setSystemTime(new Date('2023-12-31'))
             runner.onMessage({ payload: 'sync', _msgid: '' })
             sinon.assert.calledWithExactly(
                 stubs.status.lastCall,
                 { fill: 'red', shape: 'dot', text: 'OFF for 00secs' },
             )
-
         })
 
         it('should include a day in a excluded month', () => {

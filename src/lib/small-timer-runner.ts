@@ -121,6 +121,7 @@ export class SmallTimerRunner {
         return {
             ...this.timeCalc.debug(),
             override: this.override,
+            weekNumber: this.getWeekNumber(),
             topic: 'debug',
         } as NodeMessage // we cheat a bit to escape type checking in typescript
     }
@@ -162,12 +163,30 @@ export class SmallTimerRunner {
         }
     }
 
+    private getWeekNumber(): number {
+        // Idea from https://weeknumber.com/how-to/javascript
+        const currentDate = new Date()
+        currentDate.setHours(0, 0, 0, 0)
+        // Thursday in current week decides the year.
+        currentDate.setDate(currentDate.getDate() + 3 - (currentDate.getDay() + 6) % 7)
+        // January 4 is always in week 1.
+        const week1 = new Date(currentDate.getFullYear(), 0, 4)
+        // Adjust to Thursday in week 1 and count number of weeks from date to week1.
+        return 1 + Math.round(((currentDate.getTime() - week1.getTime()) / 86400000
+                              - 3 + (week1.getDay() + 6) % 7) / 7)
+    }
+
     private isDayOk(date = new Date()): boolean {
         const month = date.getMonth() + 1
+        const week = this.getWeekNumber()
         const dayOfMonth = date.getDate()
         const dayOfWeek = date.getDay()
 
-        const validMonths = [0, month]
+        const oddOrEvenWeek = Math.floor(week / 2) === week / 2
+            ? 200
+            : 201
+
+        const validMonths = [0, month, week + 100, oddOrEvenWeek]
         const validDays = [0, dayOfMonth, dayOfWeek + 100]
 
         let isOk = false
@@ -352,16 +371,15 @@ export class SmallTimerRunner {
     public onMessage(
         incomingMsg: Readonly<ISmallTimerMessage>,
     ): void {
-        const payload = typeof incomingMsg.payload === 'string'
-            ? incomingMsg.payload.toLocaleLowerCase()
-            : incomingMsg.payload
-
-        // eslint-disable-next-line no-extra-boolean-cast
         if (incomingMsg.reset !== undefined) {
             this.doOverride('auto')
             this.forceSend('input')
             return
         }
+
+        const payload = typeof incomingMsg.payload === 'string'
+            ? incomingMsg.payload.toLocaleLowerCase()
+            : incomingMsg.payload
 
         const timeout = incomingMsg.timeout !== undefined ? Number(incomingMsg.timeout) : undefined
         if (timeout !== undefined && isNaN(timeout)) {
