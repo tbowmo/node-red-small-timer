@@ -46,7 +46,7 @@
         if it was forced to be on/off
     </p>
     <p>
-        The first two override messages (1/0) time-out after 24 hours (1440 minutes, user-settable) OR at the next change of schedule.
+        The first two override messages (1/0) timeout after 24 hours (1440 minutes, user-settable) OR at the next change of schedule.
         You can set different timeout values for on and off temporary overrides
     </p>
 
@@ -66,6 +66,15 @@
         </p>
         <h3>Configuration</h3>
 
+        <h4>On and off times</h4>
+        <p>specifies the times where the node should turn on or off</p>
+        <h4>Schedule rules</h4>
+        <p>This is used to specify the schedule of when the timer should or should not operate. The set of "rules" is evaluated one by one, and the outcome of the last decides if its on or off.</p>
+        <h4>Topic</h4>
+        <p>Topic that should be sent to</p>
+        <h4>On and off messages</h4>
+        <p>This is the messages that is sent as payload when on or off states happen. Can be configured as object, number or string values</p>
+
         <h4>Options:</h4>
         <p>
             <code>Repeat</code> will continuously emit output at intervals when checked. If unchecked output is only emitted when state change is detected<br/>
@@ -74,14 +83,7 @@
             then the node will assume that it should not turn on the output<br/>
             <code>Debug enable</code> adds an extra output on the node, which includes debug information from suncalc library
         </p>
-        <h4>On and off times</h4>
-        <p>specifies the times where the node should turn on or off</p>
-        <h4>Topic</h4>
-        <p>Topic that should be sent to</p>
-        <h4>On and off messages</h4>
-        <p>This is the messages that is sent as payload when on or off states happen. Can be configured as object, number or string values</p>
-        <h4>Schedule rules</h4>
-        <p>This is used to specify the schedule of when the timer should or should not operate. The set of "rules" is evaluated one by one, and the outcome of the last decides if its on or off.</p>
+
         <h3>References</h3>
     <ul>
         <li><a href="https://github.com/tbowmo/node-red-small-timer">Github</a> - The github repository</li>
@@ -98,51 +100,14 @@
         <label for="node-input-position"><i class="fa fa-map-marker"></i> Position</label>
         <input type="text" id="node-input-position" placeholder="Position">
     </div>
-    <div class="form-row">
-        <label style="vertical-align: top;"><i class="fa fa-cog"></i> Options</label>
-        <div style="display:inline-block; width: 70%;">
-            <div class="small-timer-options">
-                <label><input type="checkbox" id="node-input-wrapMidnight" > Wrap midnight</label>
-                <label><input type="checkbox" id="node-input-injectOnStartup"> Emit on startup or redeploy</label>
-                <label><input type="checkbox" id="node-input-debugEnable" > Debug enable</label>
-                <label><input type="checkbox" id="node-input-sendEmptyPayload" > Send empty payload</label>
-                <div style="grid-column: 1/3;">
-                    <label style="width: min-content !important;">
-                        <input type="checkbox" id="node-input-repeat"> Repeat
-                    </label><label id="row-repeatInterval" for="node-input-repeatInterval">, with interval (in seconds)
-                        <input type="text" id="node-input-repeatInterval" placeholder="0" style="width: 55px !important;"/>
-                    </label>
-            </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="form-row">
-        <label for="node-input-name"><i class="fa fa-tasks"></i> Topic</label>
-        <input type="text" id="node-input-topic" placeholder="Topic">
-    </div>
-    <div class="form-row">
-        <label for="node-input-onMsg"><i class="fa fa-sign-out"></i> On message</label>
-        <input type="text" id="node-input-onMsg">
-        <input type="hidden" id="node-input-onMsgType">
-    </div>
-    <div class="form-row">
-        <label for="node-input-offMsg"><i class="fa fa-sign-out"></i> Off message</label>
-        <input  type="text" id="node-input-offMsg">
-        <input type="hidden" id="node-input-offMsgType">
-    </div>
-
-    <div class="form-tips">
-        <b>Tip</b> <em>Offset</em>, <em>override timeout</em> and <em>minimum time</em> are specified in number of minutes.
-    </div>
     <div class="form-row" style="margin-bottom: 0;">
         <label></label>
         <div style="display:inline-block;">
             <div class="small-timer-timers small-timer-timers-header">
                 <div class="small-timer-time-column">Time of day</div>
                 <div>Offset</div>
-                <div>Override timeout</div>
-                <div>Minimum time</div>
+                <div>Timeout</div>
+                <div>Minimum</div>
             </div>
         </div>
     </div>
@@ -174,6 +139,43 @@
         <label style="width: 400px;">Schedule rules</label>
         <ol id="node-input-rules-container"></ol>
     </div>
+
+    <hr />
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tasks"></i> Topic</label>
+        <input type="text" id="node-input-topic" placeholder="Topic">
+    </div>
+    <div class="form-row">
+        <label for="node-input-onMsg"><i class="fa fa-sign-out"></i> On message</label>
+        <input type="text" id="node-input-onMsg">
+        <input type="hidden" id="node-input-onMsgType">
+    </div>
+    <div class="form-row">
+        <label for="node-input-offMsg"><i class="fa fa-sign-out"></i> Off message</label>
+        <input  type="text" id="node-input-offMsg">
+        <input type="hidden" id="node-input-offMsgType">
+    </div>
+
+    <hr />
+    <div class="form-row">
+        <label style="vertical-align: top;"><i class="fa fa-cog"></i> Options</label>
+        <div style="display:inline-block; width: 70%;">
+            <div class="small-timer-options">
+                <label><input type="checkbox" id="node-input-wrapMidnight" > Wrap midnight</label>
+                <label><input type="checkbox" id="node-input-injectOnStartup"> Emit on startup or redeploy</label>
+                <label><input type="checkbox" id="node-input-debugEnable" > Debug enable</label>
+                <label><input type="checkbox" id="node-input-sendEmptyPayload" > Send empty payload</label>
+                <div style="grid-column: 1/3;">
+                    <label style="width: min-content !important;">
+                        <input type="checkbox" id="node-input-repeat"> Repeat
+                    </label><label id="row-repeatInterval" for="node-input-repeatInterval">, with interval (in seconds)
+                        <input type="text" id="node-input-repeatInterval" placeholder="0" style="width: 55px !important;"/>
+                    </label>
+            </div>
+            </div>
+        </div>
+    </div>
+
     <input id="node-input-outputs" type="hidden" value="1">
 </script>
 <style>
