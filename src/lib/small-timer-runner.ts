@@ -390,12 +390,14 @@ export class SmallTimerRunner {
         case 0:
         case '0':
         case 'off':
+        case 'false':
         case false:
             this.doOverride('tempOff', timeout)
             break
         case 1:
         case '1':
         case 'on':
+        case 'true':
         case true:
             this.doOverride('tempOn', timeout)
             break

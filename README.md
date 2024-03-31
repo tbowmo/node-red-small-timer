@@ -3,7 +3,9 @@
 ![Sonar cloud test](https://github.com/tbowmo/node-red-small-timer/actions/workflows/sonarcloud.yml/badge.svg)
 ![Build status](https://github.com/tbowmo/node-red-small-timer/actions/workflows/node-builds.yml/badge.svg)
 
-A node-red timer node to rule them all.
+A node-red timer node to rule them all. It delivers either an on or off message at scheduled intervals. These intervals can be consistent daily occurrences, like '19:00' for 'on' and '23:00' for 'off', perfect for controlling f.ex. a porch light. However, its true power lies in its ability to activate the light at, let's say sunset and deactivate it at dusk. Pretty cool, right?
+
+This encapsulates the core concept: Emit a predefined message at either specific times, or on sunrise / sunset. Garnish this with a configurable day schedule, and you have a small timer for your lights, or other things that needs to be turned on or off daily.
 
 # Install
 Either use the palette manager in Node-RED to install the plugin, or use a terminal to install directly in your local installation of Node-RED:
@@ -13,28 +15,13 @@ npm install @tbowmo/node-red-small-timer
 
 Once installed, restart your node-red server, and you will have a set of new nodes available in your palette under timers.
 
-# SmallTimer for Node-RED
-This node is the heart of the matter; it delivers either an on or off message at scheduled intervals. These intervals can be consistent daily occurrences, like '19:00' for 'on' and '23:00' for 'off', perfect for controlling a porch light. However, its true power lies in its ability to activate the light at sunset and deactivate it at dusk. Pretty cool, right?
-
-This encapsulates the core concept of SmallTimer: the ability to accomplish precisely that — activate a light at sunset and deactivate it at dusk.
-
 # Setup
-
-![image of configuration](images/small-timer-config.png)
-
-Start by configuring a position for your node to do sunrise/sunset calculations. This doesn't need to be very exact. You can either let your browser do it by pressing the button "Get position from browser" or use other means like Google Maps to find the latitude/longitude for your site.
-
-## Option checkboxes
-**Wrap midnight**: Will wrap `on time` around midnight, if `on time` is 23:00 and `off time` is 02:00, checking this will turn on before midnight, and off after. If unchecked, it will be ignored. This is particularly useful if you have a fixed `on time` at 06:00 in the morning, and a dynamic `off time` tracking sunrise, when the sunrise is before 06:00 you might not want it to turn on the porch light, and thus it should not wrap midnight.
-
-**Emit on startup**: Configures the node to emit a message 2 seconds after startup / redeploy of your node red flow.
-
-**Debug enable**: This will add an extra output to the node providing debug information, like the different sunrise/sunset etc. times (see [debug section below](#debug))
-
-**Repeat**: Enables the node to repeat status messages with the specified interval (in seconds). If disabled the node will only emit a message when its state changes.
+![image of configuration](images/small-timer-config.png)<br>
+Start by configuring a position, this is used to calculate the correct sunrise/sunset times for your area. You can either let your browser do it by pressing the button "Get position from browser" or use other means like Google Maps to find the latitude/longitude for your area.
 
 ## On and Off time
-Configure the on and off events
+Configures the on and off events<br>
+![On off times](images/onofftimes.png)
 
 ### Time of day
 Set this property to the desired on / off time for the day. Can be a specific time, or use a dynamic time such as _sunrise_, _sunset_ etc.
@@ -44,25 +31,17 @@ Set this property to the desired on / off time for the day. Can be a specific ti
 _**Note!**_ the timestamps shown under "Dynamic sun and moon times" is calculated on the fly, by the suncalc library, and are shown for the location chosen and current time of year. The actual time used by small timer will be re-calculated regularly, if one of these event times are chosen
 
 ### Offset
-In case of using a dynamic time, this can be used to add an offset to the calculated time. Use it for example to turn the light on 30 minutes before sunrise.
+When using a dynamic time, you can add an offset to the calculated time. Use it for example to turn the light on 30 minutes before sunrise.
 
-### Override timeout
+### Timeout
 Used when triggering an override of the current state, after set time the node will switch back to whatever the output state should be at the given time, if it was in auto mode. This value is split into an on and off timeout. This means that you could have an 5 minutes on timeout (for turning on lights momentarily) while keeping off at default timeout which is 24 hours (or until next state change)
 
 ### Minimum time
-This can be used to set an minimum required on time, if the calculated ontime is below this value it is ignored. For example you might not be interested to turn on the light for only 5 minutes, when you are using sunset to turn on lights in the evening. Then you can set this property to the minimum required on time
-
-## Topic
-Topic parameter of the msg that is sent out on events. This can be used to send on to mqtt for example.
-
-## On message
-Payload of the output message is set to this value during on, can be set to json, number, string, or boolean
-
-## Off message
-Payload of the output message is set to this value during off, can be set to json, number, string, or boolean
+This can be used to set a minimum required 'on time'. If the calculated 'on time' is less than this value, the event will be ignored. For example, if you are using sunset to turn on lights in the evening with a fixed off time, you might not be interested in turning on the light for only 5 minutes. This can be prevented by setting a minimum 'on time' here.
 
 ## Schedule rules
-This is used to determine the schedule of when the timer should or should not operate.
+![Schedule](images/schedule.png)<br>
+This is used to determine which days the timer should or should not operate.
 
 **==** is include, this specifies days where the rule should run
 
@@ -72,7 +51,7 @@ _Note_ that if the state is turned on by auto state, it will also run at the off
 
 The rules are read and executed one by one, it is the outcome after the last rule has been read, that defines if the day is included or excluded
 
-If the node is turned on on a "do not run day", temporary on is used, and output will be turned off after set timeout
+If the node is turned on on a "do not run day", temporary on is used, and output will be turned off after set [timeout](#timeout)
 
 _Default logic state is that the timer is disabled, so you need at least one rule that turns it on (**==**)._
 
@@ -86,6 +65,29 @@ Note that the weeks numbers are calculated according to ISO8601, which means tha
 
 2) Run on mondays in odd weeks, except all of December<br>
 ![Odd weeks on mondays, except December](images/odd-weeks-on-mondays-except-december.png)
+
+3) Run on mondays in June<br>
+![Only mondays in june](images/only-mondays-june.png)
+
+## Output configuration
+### Topic
+Topic parameter of the msg that is sent out on events. This can be used to send on to mqtt for example.
+
+### On message
+Payload of the output message is set to this value during on, can be set to json, number, string, or boolean
+
+### Off message
+Payload of the output message is set to this value during off, can be set to json, number, string, or boolean
+
+## Options
+![Options](images/options.png)<br>
+**Wrap midnight**: Will wrap `on time` around midnight, if `on time` is 23:00 and `off time` is 02:00, checking this will turn on before midnight, and off after. If unchecked, it will be ignored. This is particularly useful if you have a fixed `on time` at 06:00 in the morning, and a dynamic `off time` tracking sunrise, when the sunrise is before 06:00 you might not want it to turn on the porch light, and thus it should not wrap midnight.
+
+**Emit on startup**: Configures the node to emit a message 2 seconds after startup / redeploy of your node red flow.
+
+**Debug enable**: This will add an extra output to the node providing debug information, like the different sunrise/sunset etc. times (see [debug section below](#debug))
+
+**Repeat**: Enables the node to repeat status messages with the specified interval (in seconds). If disabled the node will only emit a message when its state changes.
 
 # Output
 
@@ -126,19 +128,19 @@ The input of the node takes a few commands in the payload property of the messag
 | auto / default | Sets the node back to autostate, and outputs whatever the autostate would be (on/off)
 | sync           | Emits the current state on the output
 
-Using the temporary on/off feature will emit the respective on/off message on the output. Simultaneously, it will start an internal timer with the value from the 'Override timeout' configuration option. When this timer runs out, the node will resume auto mode.
+Using the temporary on/off feature will emit the respective on/off message on the output. Simultaneously, it will start an internal timer with the value from the [timeout](#timeout) configuration option. When this timer runs out, the node will resume auto mode.
 
-Note that if you do a temporary on/off to the same state that the auto mode will be in, then the node will return to auto state!
+Note that if you do a temporary on/off to the same state that the auto mode will be in, then the node will return to auto state.
 
-Sending the auto (or default) to the small timer will cause it to return to auto mode (if it was in a temporary on/off state earlier).
+Sending an auto/default payload will cause it to return to auto mode (if it was in a temporary on/off state earlier), and emit the new state if so required
 
 **NOTE:** If the input payload property contains non-decodable properties/strings, the input will be ignored, and an error will be emitted to Node-RED.
 
 ## Optional properties on input message
 | property | type    | description
 |----------|---------|--------------------------------
-| reset    | boolean | If this property resolves to a truthy value, the node will be reset to auto mode
-| timeout  | number  | This can be used to override the timeout set in the configuration, and applies to the current on or off command. If left out / undefined, the configured timeout will be used
+| reset    | boolean | If this property resolves to a truthy value, the node will be reset to auto mode (Works like auto/default payload)
+| timeout  | number  | This can be used to override the [timeout](#timeout) set in the configuration, and applies to the current on or off command. If left out / undefined, the configured timeout will be used
 
 # Debug
 
