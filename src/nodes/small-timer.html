@@ -26,10 +26,10 @@
             <dt class="optional">payload <span class="property-type">string as specified</span></dt>
             <dd>
                 <ul>
-                    <li>1 (or on)</li>
-                    <li>0 (or off)</li>
+                    <li>1 / on / true</li>
+                    <li>0 / off / false</li>
                     <li>toggle</li>
-                    <li>auto (or default)</li>
+                    <li>auto / default</li>
                     <li>sync</li>
                 </ul>
             </dd>
@@ -302,9 +302,9 @@
         function rulesContainer() {
             $("#node-input-rules-container").css('min-height', '150px').css('min-width', '450px').editableList({
                 header: $("<div style='padding-left: 34px; flex-grow: 1'>").append($.parseHTML(`
-                       <div style='width:10%; display: inline-grid'>Type</div>
-                       <div style='width:37%; display: inline-grid'>Month/week</div>
-                       <div style='width:47%; display: inline-grid'>Day of month/week</div>
+                       <div style='width:15%; display: inline-grid'>Type</div>
+                       <div style='width:40%; display: inline-grid'>Month/week</div>
+                       <div style='width:40%; display: inline-grid'>Day of month/week</div>
                    `)),
                 scrollOnAdd: true,
                 sortable: true,
@@ -350,9 +350,9 @@
                     });
 
                     const row = $('<div></div>', { style: "flex-grow:1" }).appendTo(container);
-                    const typeSelect = $('<select/>', { style: "width:10%; margin-left:5px" }).addClass('typeSelect').appendTo(row);
-                    const monthSelect = $('<select/>', { style: "width:37%; margin-left:5px" }).addClass('monthSelect').appendTo(row);
-                    const daySelect = $('<select/>', { style: "width:47%; margin-left:5px" }).addClass('daySelect').appendTo(row);
+                    const typeSelect = $('<select/>', { style: "width:15%; margin-left:5px" }).addClass('typeSelect').appendTo(row);
+                    const monthSelect = $('<select/>', { style: "width:40%; margin-left:5px" }).addClass('monthSelect').appendTo(row);
+                    const daySelect = $('<select/>', { style: "width:40%; margin-left:5px" }).addClass('daySelect').appendTo(row);
 
                     monthSelect.on('change', function () {
                         let currentDay = Number(daySelect.val());

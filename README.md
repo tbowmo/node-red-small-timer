@@ -66,6 +66,9 @@ Note that the weeks numbers are calculated according to ISO8601, which means tha
 2) Run on mondays in odd weeks, except all of December<br>
 ![Odd weeks on mondays, except December](images/odd-weeks-on-mondays-except-december.png)
 
+3) Run on mondays in June<br>
+![Only mondays in june](images/only-mondays-june.png)
+
 ## Output configuration
 ### Topic
 Topic parameter of the msg that is sent out on events. This can be used to send on to mqtt for example.
