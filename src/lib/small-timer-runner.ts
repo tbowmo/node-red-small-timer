@@ -292,11 +292,11 @@ export class SmallTimerRunner {
         }
 
         switch (this.timeCalc.operationToday()) {
-        case 'noMidnightWrap':
-            text.push('off time is before on time')
-            break
-        case 'minimumOnTimeNotMet':
-            text.push('minimum on time not met')
+            case 'noMidnightWrap':
+                text.push('off time is before on time')
+                break
+            case 'minimumOnTimeNotMet':
+                text.push('minimum on time not met')
         }
 
         let nextTimeoutOrAuto = Number.MAX_SAFE_INTEGER
@@ -387,36 +387,36 @@ export class SmallTimerRunner {
         }
 
         switch (payload) {
-        case 0:
-        case '0':
-        case 'off':
-        case 'false':
-        case false:
-            this.doOverride('tempOff', timeout)
-            break
-        case 1:
-        case '1':
-        case 'on':
-        case 'true':
-        case true:
-            this.doOverride('tempOn', timeout)
-            break
-        case 'toggle':
-            this.doOverride(
-                this.getCurrentState()
-                    ? 'tempOff'
-                    : 'tempOn',
-                timeout,
-            )
-            break
-        case 'auto':
-        case 'default':
-            this.doOverride('auto')
-            break
-        case 'sync':
-            break
-        default:
-            throw new Error(`Did not understand the command '${incomingMsg.payload}' supplied in payload`)
+            case 0:
+            case '0':
+            case 'off':
+            case 'false':
+            case false:
+                this.doOverride('tempOff', timeout)
+                break
+            case 1:
+            case '1':
+            case 'on':
+            case 'true':
+            case true:
+                this.doOverride('tempOn', timeout)
+                break
+            case 'toggle':
+                this.doOverride(
+                    this.getCurrentState()
+                        ? 'tempOff'
+                        : 'tempOn',
+                    timeout,
+                )
+                break
+            case 'auto':
+            case 'default':
+                this.doOverride('auto')
+                break
+            case 'sync':
+                break
+            default:
+                throw new Error(`Did not understand the command '${incomingMsg.payload}' supplied in payload`)
         }
         this.forceSend('input')
     }
