@@ -3,9 +3,9 @@
 ![Sonar cloud test](https://github.com/tbowmo/node-red-small-timer/actions/workflows/sonarcloud.yml/badge.svg)
 ![Build status](https://github.com/tbowmo/node-red-small-timer/actions/workflows/node-builds.yml/badge.svg)
 
-A node-red timer node to rule them all. It delivers either an on or off message at scheduled intervals. These intervals can be consistent daily occurrences, like '19:00' for 'on' and '23:00' for 'off', perfect for controlling f.ex. a porch light. However, its true power lies in its ability to activate the light at, let's say sunset and deactivate it at dusk. Pretty cool, right?
+A Node-RED timer node to rule them all. It delivers either an on or off message at scheduled intervals. These intervals can be consistent daily occurrences, like '19:00' for 'on' and '23:00' for 'off', perfect for controlling f.ex. a porch light. However, its true power lies in its ability to activate the light at, let's say sunset and deactivate it at dusk. Pretty cool, right?
 
-This encapsulates the core concept: Emit a predefined message at either specific times, or on sunrise / sunset. Garnish this with a configurable day schedule, and you have a small timer for your lights, or other things that needs to be turned on or off daily.
+This encapsulates the core concept: Emit a predefined message at either specific times, or on sunrise / sunset. Garnish this with a powerful day schedule configuration, and you have a small timer for your lights, or other things that needs to be turned on or off daily.
 
 # Install
 Either use the palette manager in Node-RED to install the plugin, or use a terminal to install directly in your local installation of Node-RED:
@@ -176,3 +176,6 @@ The debug output will contain the following data
 All the above numbers will represent the number of minutes since midnight on the day the event happens, except for nextStart and nextEnd, which will indicate the number of minutes until the next event.
 
 The debug object can be extended with new properties in future releases that might not be fully described here.
+
+# Origin
+SmallTimer was originally inspired by [BigTimer](https://tech.scargill.net/big-timer/), which, in my opinion, has a somewhat overwhelming editor UI with numerous checkboxes. This inspired the creation of SmallTimer, aiming for a simpler approach to the editor UI. SmallTimer is a complete rewrite from scratch, utilizing modern TypeScript and unit tests to ensure the core functionality works during development.

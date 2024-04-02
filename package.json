@@ -40,14 +40,15 @@
         "sunset",
         "sunrise",
         "dawn",
-        "dusk"
+        "dusk",
+        "schedule"
     ],
     "license": "GPL-2.0",
     "main": "index.js",
     "node-red": {
         "version": ">=3.0",
         "nodes": {
-            "smalltimer": "dist/nodes/small-timer.js",
+            "SmallTimer": "dist/nodes/small-timer.js",
             "position": "dist/nodes/position.js"
         }
     },
