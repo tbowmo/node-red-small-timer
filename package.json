@@ -3,7 +3,7 @@
     "author": {
         "name": "Thomas Bowman Mørch"
     },
-    "version": "0.17.0",
+    "version": "0.18.0",
     "engines": {
         "node": ">=14.0.0"
     },
@@ -59,6 +59,8 @@
     "dependencies": {
         "@node-red/util": "^3.1.8",
         "date-fns": "^3.6.0",
+        "date-fns-tz": "^3.0.0",
+        "geo-tz": "^8.0.2",
         "suncalc": "^1.9.0"
     },
     "devDependencies": {
