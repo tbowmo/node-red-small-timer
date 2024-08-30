@@ -483,6 +483,28 @@
                         generateTimes('#node-input-startTime', sunCalcTimes, false)
                         generateTimes('#node-input-endTime', sunCalcTimes, true)
                     })
+                    .fail(() => {
+                        const sunCalcTimes = [
+                            {"id":"5101","label":"Sunrise"},
+                            {"id":"5102","label":"Sunrise end"},
+                            {"id":"5103","label":"Golden hour end"},
+                            {"id":"5104","label":"Solar noon"},
+                            {"id":"5105","label":"Golden hour"},
+                            {"id":"5106","label":"Sunset start"},
+                            {"id":"5107","label":"Sunset"},
+                            {"id":"5108","label":"Dusk"},
+                            {"id":"5109","label":"Nautical dusk"},
+                            {"id":"5110","label":"Night"},
+                            {"id":"5111","label":"Nadir"},
+                            {"id":"5112","label":"Night end"},
+                            {"id":"5113","label":"Nautical dawn"},
+                            {"id":"5114","label":"Dawn"},
+                            {"id":"5115","label":"Moonrise"},
+                            {"id":"5116","label":"Moonset"}
+                        ]
+                        generateTimes('#node-input-startTime', sunCalcTimes, false)
+                        generateTimes('#node-input-endTime', sunCalcTimes, true)
+                    })
 
                 offsetEnable($('#node-input-startTime').val(), '#node-input-startOffset')
                 offsetEnable($('#node-input-endTime').val(), '#node-input-endOffset')
@@ -565,11 +587,15 @@
             `
             let sunCalc = ''
             for (const item of sunMoon) {
-                const time = new Date(item.date)
-                const hour = leadingZero(time.getHours())
-                const minute = leadingZero(time.getMinutes())
-                const tString = `${hour}:${minute}`
-                sunCalc += `<option value="${item.id}">${tString} - ${item.label}</option>`
+                if (item.date) {
+                    const time = new Date(item.date)
+                    const hour = leadingZero(time.getHours())
+                    const minute = leadingZero(time.getMinutes())
+                    const tString = `${hour}:${minute}`
+                    sunCalc += `<option value="${item.id}">${tString} - ${item.label}</option>`
+                } else {
+                    sunCalc += `<option value="${item.id}">${item.label}</option>`
+                }
             }
 
             html += `
