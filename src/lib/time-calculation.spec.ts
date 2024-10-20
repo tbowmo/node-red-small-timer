@@ -45,7 +45,7 @@ describe('lib/time-calculation', () => {
             0,
         )
 
-        sinon.assert.calledWith(stubs.getTimes, currentTime, 0, 0)
+        sinon.assert.notCalled(stubs.getTimes)
         expect(timeCalc.getOnState()).to.equal(true)
         expect(timeCalc.getTimeToNextStartEvent()).to.equal(1320)
         expect(timeCalc.getTimeToNextEndEvent()).to.equal(120)
