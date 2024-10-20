@@ -38,16 +38,16 @@ export class SmallTimerRunner {
     private override: State = 'auto'
     private currentState = false
 
-    private topic: string
-    private onMsg: string
-    private offMsg: string
-    private onMsgType: string
-    private offMsgType: string
-    private rules: Rule[]
-    private repeat: boolean
-    private repeatInterval: number
-    private onTimeout: number
-    private offTimeout: number
+    private readonly topic: string
+    private readonly onMsg: string
+    private readonly offMsg: string
+    private readonly onMsgType: string
+    private readonly offMsgType: string
+    private readonly rules: Rule[]
+    private readonly repeat: boolean
+    private readonly repeatInterval: number
+    private readonly onTimeout: number
+    private readonly offTimeout: number
 
     private timeCalc: TimeCalc
     private debugMode = false
