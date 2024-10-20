@@ -21,14 +21,14 @@ export class TimeCalc extends SunAndMoon {
      * @param wrapMidnight
      */
     constructor(
-        latitude: number,
-        longitude: number,
-        private wrapMidnight: boolean,
+        latitude: number | undefined,
+        longitude: number | undefined,
+        private readonly wrapMidnight: boolean,
         private startTime: number,
         private endTime: number,
         private startOffset: number,
         private endOffset: number,
-        private minimumOnTime: number,
+        private readonly minimumOnTime: number,
     ) {
         super(latitude, longitude)
         this.eventCalculation()
@@ -45,7 +45,7 @@ export class TimeCalc extends SunAndMoon {
                 .map((key) => {
                     if (times && (key in times)) {
                         const t = times[(key as P)]
-                        return t === undefined ? undefined : [key, this.getTime(t as Date)] 
+                        return t === undefined ? undefined : [key, this.getTime(t as Date)]
                     }
                 })
                 .filter(isNotUndefinedOrNull),
@@ -130,7 +130,7 @@ export class TimeCalc extends SunAndMoon {
             return onTime + wholeDay
         }
 
-        return onTime 
+        return onTime
     }
 
     /**
@@ -143,11 +143,11 @@ export class TimeCalc extends SunAndMoon {
         const currentTime = this.getTime(date)
 
         this.eventCalculation(false, date)
-    
+
         if (this.onTime() < this.minimumOnTime) {
             return false
         }
-    
+
         if (this.actualEnd < this.actualStart) {
             return this.wrapMidnight && ((currentTime < this.actualEnd) || (currentTime > this.actualStart))
         }
@@ -191,6 +191,10 @@ export class TimeCalc extends SunAndMoon {
     private lookupEventTime(time: number, startTime = 0): number {
         if (time <= wholeDay) {
             return time
+        }
+
+        if (this.latitude === undefined && this.longitude === undefined) {
+            throw new Error('Something went wrong, latitude and longitude not specified')
         }
 
         if (time > 10000) {

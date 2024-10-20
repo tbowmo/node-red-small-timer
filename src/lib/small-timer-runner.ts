@@ -29,7 +29,7 @@ const SecondsTick = 1000
 
 export class SmallTimerRunner {
 
-    private startupTock: ReturnType<typeof setTimeout> | undefined = undefined
+    private readonly startupTock: ReturnType<typeof setTimeout> | undefined = undefined
 
     // Timing variables
     private tickTimer: ReturnType<typeof setInterval> | undefined = undefined
@@ -38,34 +38,34 @@ export class SmallTimerRunner {
     private override: State = 'auto'
     private currentState = false
 
-    private topic: string
-    private onMsg: string
-    private offMsg: string
-    private onMsgType: string
-    private offMsgType: string
-    private rules: Rule[]
-    private repeat: boolean
-    private repeatInterval: number
-    private onTimeout: number
-    private offTimeout: number
+    private readonly topic: string
+    private readonly onMsg: string
+    private readonly offMsg: string
+    private readonly onMsgType: string
+    private readonly offMsgType: string
+    private readonly rules: Rule[]
+    private readonly repeat: boolean
+    private readonly repeatInterval: number
+    private readonly onTimeout: number
+    private readonly offTimeout: number
 
-    private timeCalc: TimeCalc
-    private debugMode = false
+    private readonly timeCalc: TimeCalc
+    private readonly debugMode: boolean
 
-    private timer = new Timer()
-    private sendEmptyPayload: boolean
+    private readonly timer = new Timer()
+    private readonly sendEmptyPayload: boolean
 
     // Default to 20 seconds between ticks (update of state / node)
-    private defaultTickTimer = SecondsTick * 20
+    private readonly defaultTickTimer = SecondsTick * 20
 
     constructor(
-        position: Position,
+        position: Position | undefined,
         configuration: ISmallTimerProperties,
-        private node: NodeFunctions,
+        private readonly node: NodeFunctions,
     ) {
         this.timeCalc = new TimeCalc(
-            Number(position.latitude),
-            Number(position.longitude),
+            position ? Number(position.latitude) : undefined,
+            position ? Number(position.longitude) : undefined,
             configuration.wrapMidnight,
             Number(configuration.startTime),
             Number(configuration.endTime),

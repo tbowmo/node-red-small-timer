@@ -17,7 +17,9 @@ Once installed, restart your node-red server, and you will have a set of new nod
 
 # Setup
 ![image of configuration](images/small-timer-config.png)<br>
-Start by configuring a position, this is used to calculate the correct sunrise/sunset times for your area. You can either let your browser do it by pressing the button "Get position from browser" or use other means like Google Maps to find the latitude/longitude for your area.
+_Optional_: Start by configuring your location, which is used to calculate the correct sunrise and sunset times for your area. You can either let your browser do this by clicking the "Get position from browser" button, or manually enter the latitude and longitude using a service like Google Maps.
+
+If you don't configure a location, you'll only be able to use fixed times to send on/off messages.
 
 ## On and Off time
 Configures the on and off events<br>
