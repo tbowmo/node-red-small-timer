@@ -417,7 +417,7 @@
             outputLabels: ["status message", "debug output"],
             defaults: {
                 name: { value: 'Small timer', required: true },
-                position: { value: "", type: "position" },
+                position: { value: "", type: "position", required: false },
                 startTime: { value: 5001, required: true },
                 endTime: { value: 1425, required: true },
                 startOffset: { value: 0, required: true, validate: (v) => !isNaN(v || 0) },
@@ -477,34 +477,38 @@
                     default: 'str',
                     types: ["str", "num", "bool", "json"],
                 })
-
-                $.getJSON('smalltimer/sunCalc/' + this.position)
-                    .done((sunCalcTimes) => {
-                        generateTimes('#node-input-startTime', sunCalcTimes, false)
-                        generateTimes('#node-input-endTime', sunCalcTimes, true)
-                    })
-                    .fail(() => {
-                        const sunCalcTimes = [
-                            {"id":"5101","label":"Sunrise"},
-                            {"id":"5102","label":"Sunrise end"},
-                            {"id":"5103","label":"Golden hour end"},
-                            {"id":"5104","label":"Solar noon"},
-                            {"id":"5105","label":"Golden hour"},
-                            {"id":"5106","label":"Sunset start"},
-                            {"id":"5107","label":"Sunset"},
-                            {"id":"5108","label":"Dusk"},
-                            {"id":"5109","label":"Nautical dusk"},
-                            {"id":"5110","label":"Night"},
-                            {"id":"5111","label":"Nadir"},
-                            {"id":"5112","label":"Night end"},
-                            {"id":"5113","label":"Nautical dawn"},
-                            {"id":"5114","label":"Dawn"},
-                            {"id":"5115","label":"Moonrise"},
-                            {"id":"5116","label":"Moonset"}
-                        ]
-                        generateTimes('#node-input-startTime', sunCalcTimes, false)
-                        generateTimes('#node-input-endTime', sunCalcTimes, true)
-                    })
+                if (this.position) {
+                    $.getJSON('smalltimer/sunCalc/' + this.position)
+                        .done((sunCalcTimes) => {
+                            generateTimes('#node-input-startTime', sunCalcTimes, false)
+                            generateTimes('#node-input-endTime', sunCalcTimes, true)
+                        })
+                        .fail(() => {
+                            const sunCalcTimes = [
+                                {"id":"5101","label":"Sunrise"},
+                                {"id":"5102","label":"Sunrise end"},
+                                {"id":"5103","label":"Golden hour end"},
+                                {"id":"5104","label":"Solar noon"},
+                                {"id":"5105","label":"Golden hour"},
+                                {"id":"5106","label":"Sunset start"},
+                                {"id":"5107","label":"Sunset"},
+                                {"id":"5108","label":"Dusk"},
+                                {"id":"5109","label":"Nautical dusk"},
+                                {"id":"5110","label":"Night"},
+                                {"id":"5111","label":"Nadir"},
+                                {"id":"5112","label":"Night end"},
+                                {"id":"5113","label":"Nautical dawn"},
+                                {"id":"5114","label":"Dawn"},
+                                {"id":"5115","label":"Moonrise"},
+                                {"id":"5116","label":"Moonset"}
+                            ]
+                            generateTimes('#node-input-startTime', sunCalcTimes, false)
+                            generateTimes('#node-input-endTime', sunCalcTimes, true)
+                        })
+                } else {
+                    generateTimes('#node-input-startTime', undefined, false)
+                    generateTimes('#node-input-endTime', undefined, true)
+                }
 
                 offsetEnable($('#node-input-startTime').val(), '#node-input-startOffset')
                 offsetEnable($('#node-input-endTime').val(), '#node-input-endOffset')
@@ -585,23 +589,25 @@
                 ${fixedTimes}
             </optgroup>
             `
-            let sunCalc = ''
-            for (const item of sunMoon) {
-                if (item.date) {
-                    const time = new Date(item.date)
-                    const hour = leadingZero(time.getHours())
-                    const minute = leadingZero(time.getMinutes())
-                    const tString = `${hour}:${minute}`
-                    sunCalc += `<option value="${item.id}">${tString} - ${item.label}</option>`
-                } else {
-                    sunCalc += `<option value="${item.id}">${item.label}</option>`
+            if (sunMoon) {
+                let sunCalc = ''
+                for (const item of sunMoon) {
+                    if (item.date) {
+                        const time = new Date(item.date)
+                        const hour = leadingZero(time.getHours())
+                        const minute = leadingZero(time.getMinutes())
+                        const tString = `${hour}:${minute}`
+                        sunCalc += `<option value="${item.id}">${tString} - ${item.label}</option>`
+                    } else {
+                        sunCalc += `<option value="${item.id}">${item.label}</option>`
+                    }
                 }
+                html += `
+                    <optgroup label="Dynamic sun and moon times">
+                        ${sunCalc}
+                    </optgroup>`
             }
 
-            html += `
-            <optgroup label="Dynamic sun and moon times">
-                ${sunCalc}
-            </optgroup>`
             if (endTime) {
                 html = html + `
             <optgroup label="fixed durations">

@@ -59,13 +59,13 @@ export class SmallTimerRunner {
     private defaultTickTimer = SecondsTick * 20
 
     constructor(
-        position: Position,
+        position: Position | undefined,
         configuration: ISmallTimerProperties,
         private node: NodeFunctions,
     ) {
         this.timeCalc = new TimeCalc(
-            Number(position.latitude),
-            Number(position.longitude),
+            position ? Number(position.latitude) : undefined,
+            position ? Number(position.longitude) : undefined,
             configuration.wrapMidnight,
             Number(configuration.startTime),
             Number(configuration.endTime),
