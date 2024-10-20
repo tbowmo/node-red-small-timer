@@ -29,7 +29,7 @@ const SecondsTick = 1000
 
 export class SmallTimerRunner {
 
-    private startupTock: ReturnType<typeof setTimeout> | undefined = undefined
+    private readonly startupTock: ReturnType<typeof setTimeout> | undefined = undefined
 
     // Timing variables
     private tickTimer: ReturnType<typeof setInterval> | undefined = undefined
@@ -49,11 +49,11 @@ export class SmallTimerRunner {
     private readonly onTimeout: number
     private readonly offTimeout: number
 
-    private timeCalc: TimeCalc
-    private debugMode = false
+    private readonly timeCalc: TimeCalc
+    private readonly debugMode: boolean
 
-    private timer = new Timer()
-    private sendEmptyPayload: boolean
+    private readonly timer = new Timer()
+    private readonly sendEmptyPayload: boolean
 
     // Default to 20 seconds between ticks (update of state / node)
     private defaultTickTimer = SecondsTick * 20

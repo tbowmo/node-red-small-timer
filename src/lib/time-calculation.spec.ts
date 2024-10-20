@@ -35,8 +35,8 @@ describe('lib/time-calculation', () => {
         const minutes = currentTime.getHours() * 60 + currentTime.getMinutes()
 
         const timeCalc = new TimeCalc(
-            10,
-            10,
+            undefined,
+            undefined,
             false,
             minutes - 120, // 09:00
             minutes + 120, // 12:00
@@ -45,7 +45,7 @@ describe('lib/time-calculation', () => {
             0,
         )
 
-        sinon.assert.calledWith(stubs.getTimes, currentTime, 10, 10)
+        sinon.assert.calledWith(stubs.getTimes, currentTime, 0, 0)
         expect(timeCalc.getOnState()).to.equal(true)
         expect(timeCalc.getTimeToNextStartEvent()).to.equal(1320)
         expect(timeCalc.getTimeToNextEndEvent()).to.equal(120)
@@ -200,6 +200,25 @@ describe('lib/time-calculation', () => {
 
         expect(timeCalc.setStartEndTime.bind(timeCalc, 6001, 6002))
             .to.throw('Can\'t look up the correct time \'6001\' \'0\'')
+    })
+
+    it.skip('should throw error if position is not set and dynamic time is requested', () => {
+        setupTest()
+        sinon.clock.setSystemTime(new Date('2023-01-01 13:00'))
+
+        const timeCalc = new TimeCalc(
+            undefined,
+            undefined,
+            true,
+            5000,
+            5001,
+            0,
+            0,
+            0,
+        )
+
+        expect(timeCalc.setStartEndTime.bind(timeCalc, 5101, 5102))
+            .to.throw('Something went wrong, latitude and longitude not specified')
     })
 
     it('should create data suitable for debug', () => {

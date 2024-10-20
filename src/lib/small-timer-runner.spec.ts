@@ -442,7 +442,7 @@ describe('lib/small-timer-runner', () => {
             stubs.stubbedTimeCalc.getTimeToNextEndEvent.returns(20)
             stubs.stubbedTimeCalc.getOnState.returns(false)
 
-            const runner = new SmallTimerRunner(stubs.position, stubs.configuration, stubs.node)
+            const runner = new SmallTimerRunner(undefined, stubs.configuration, stubs.node)
             sinon.clock.tick(80000)
 
             sinon.assert.calledWithExactly(stubs.status, { fill: 'red', shape: 'dot', text: 'OFF for 00secs' })
