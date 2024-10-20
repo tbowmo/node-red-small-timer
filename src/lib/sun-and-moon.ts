@@ -53,12 +53,15 @@ export class SunAndMoon {
      * @param wrapMidnight
      */
     constructor(
-        protected latitude: number,
-        protected longitude: number,
+        protected latitude?: number,
+        protected longitude?: number,
     ) {
     }
 
     public getTimes(now = new Date()): {id: string, label: string, date: Date}[] {
+        if (!this.latitude || !this.longitude) {
+            return []
+        }
         this.sunTimes = SunCalc.getTimes(now, this.latitude, this.longitude)
         this.moonTimes = SunCalc.getMoonTimes(now, this.latitude, this.longitude)
 
@@ -67,7 +70,7 @@ export class SunAndMoon {
                 return
             }
             const labelParts = key.split(/(?=[A-Z])/)
-            let label = labelParts.join(' ').toLocaleLowerCase() 
+            let label = labelParts.join(' ').toLocaleLowerCase()
             if (this.sunTimes && key in this.sunTimes) {
                 label = capitalizeFirstLetter(label)
                 const date = this.sunTimes[(key as SunTimes)]
@@ -106,7 +109,7 @@ export class SunAndMoon {
 
     protected updateSunCalc(now = new Date()) {
         // Only necessary to do the calculations once a day
-        if (this.lastSunCalcUpdate === now.getDay()) {
+        if (this.lastSunCalcUpdate === now.getDay() || !this.latitude || !this.longitude) {
             return
         }
 

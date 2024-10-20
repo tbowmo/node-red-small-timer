@@ -30,7 +30,7 @@ export class TimeCalc extends SunAndMoon {
         private endOffset: number,
         private minimumOnTime: number,
     ) {
-        super(latitude ?? 0, longitude ?? 0)
+        super(latitude, longitude)
         this.eventCalculation()
     }
 
@@ -193,7 +193,7 @@ export class TimeCalc extends SunAndMoon {
             return time
         }
 
-        if (this.latitude === 0 && this.longitude === 0) {
+        if (this.latitude === undefined && this.longitude === undefined) {
             throw new Error('Something went wrong, latitude and longitude not specified')
         }
 
