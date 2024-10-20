@@ -53,8 +53,8 @@ export class SunAndMoon {
      * @param wrapMidnight
      */
     constructor(
-        protected latitude?: number,
-        protected longitude?: number,
+        protected readonly latitude?: number,
+        protected readonly longitude?: number,
     ) {
     }
 
