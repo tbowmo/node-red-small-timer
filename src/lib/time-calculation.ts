@@ -23,12 +23,12 @@ export class TimeCalc extends SunAndMoon {
     constructor(
         latitude: number | undefined,
         longitude: number | undefined,
-        private wrapMidnight: boolean,
+        private readonly wrapMidnight: boolean,
         private startTime: number,
         private endTime: number,
         private startOffset: number,
         private endOffset: number,
-        private minimumOnTime: number,
+        private readonly minimumOnTime: number,
     ) {
         super(latitude, longitude)
         this.eventCalculation()

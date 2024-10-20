@@ -56,12 +56,12 @@ export class SmallTimerRunner {
     private readonly sendEmptyPayload: boolean
 
     // Default to 20 seconds between ticks (update of state / node)
-    private defaultTickTimer = SecondsTick * 20
+    private readonly defaultTickTimer = SecondsTick * 20
 
     constructor(
         position: Position | undefined,
         configuration: ISmallTimerProperties,
-        private node: NodeFunctions,
+        private readonly node: NodeFunctions,
     ) {
         this.timeCalc = new TimeCalc(
             position ? Number(position.latitude) : undefined,
